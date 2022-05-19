@@ -1,4 +1,8 @@
-Robot robotA();
+
+#include <math.h>
+#include "mainRobotClass.h"
+
+Robot robotA(0, 0, 0);
 void setup(void)
 {
     Serial.begin(9600);
@@ -6,5 +10,6 @@ void setup(void)
 
 void loop(void)
 {
-    robotA.Move(10, 10);
+    robotA.sendMessage('Z');
+    delay(5000);
 }
