@@ -27,12 +27,12 @@ private:
     // position of the robot on the grid
     float x, y, theta;
     // sets up each board and should initialize communication with the xbee's
-
-public:
     void Robot(void)
     {
         setupArdumoto();
     }
+
+public:
     // moves the robot at velocity v and angular velocity w
     void Move(float v, float w)
     {
