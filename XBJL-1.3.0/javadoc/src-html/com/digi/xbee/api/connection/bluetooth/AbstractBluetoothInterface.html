@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
+<span class="sourceLineNo">002</span> * Copyright 2019, Digi International Inc.<a name="line.2"></a>
+<span class="sourceLineNo">003</span> *<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * This Source Code Form is subject to the terms of the Mozilla Public<a name="line.4"></a>
+<span class="sourceLineNo">005</span> * License, v. 2.0. If a copy of the MPL was not distributed with this<a name="line.5"></a>
+<span class="sourceLineNo">006</span> * file, you can obtain one at http://mozilla.org/MPL/2.0/.<a name="line.6"></a>
+<span class="sourceLineNo">007</span> *<a name="line.7"></a>
+<span class="sourceLineNo">008</span> * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES <a name="line.8"></a>
+<span class="sourceLineNo">009</span> * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF <a name="line.9"></a>
+<span class="sourceLineNo">010</span> * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR <a name="line.10"></a>
+<span class="sourceLineNo">011</span> * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES <a name="line.11"></a>
+<span class="sourceLineNo">012</span> * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN <a name="line.12"></a>
+<span class="sourceLineNo">013</span> * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF <a name="line.13"></a>
+<span class="sourceLineNo">014</span> * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.<a name="line.14"></a>
+<span class="sourceLineNo">015</span> */<a name="line.15"></a>
+<span class="sourceLineNo">016</span>package com.digi.xbee.api.connection.bluetooth;<a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span>import java.security.InvalidAlgorithmParameterException;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import java.security.InvalidKeyException;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import java.security.NoSuchAlgorithmException;<a name="line.20"></a>
+<span class="sourceLineNo">021</span><a name="line.21"></a>
+<span class="sourceLineNo">022</span>import javax.crypto.Cipher;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import javax.crypto.NoSuchPaddingException;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import javax.crypto.spec.IvParameterSpec;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import javax.crypto.spec.SecretKeySpec;<a name="line.25"></a>
+<span class="sourceLineNo">026</span><a name="line.26"></a>
+<span class="sourceLineNo">027</span>import com.digi.xbee.api.connection.ConnectionType;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import com.digi.xbee.api.connection.IConnectionInterface;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import com.digi.xbee.api.exceptions.XBeeException;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import com.digi.xbee.api.utils.ByteUtils;<a name="line.30"></a>
+<span class="sourceLineNo">031</span><a name="line.31"></a>
+<span class="sourceLineNo">032</span>/**<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * This class provides common functionality to Bluetooth Low Energy interfaces.<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * <a name="line.34"></a>
+<span class="sourceLineNo">035</span> * @since 1.3.0<a name="line.35"></a>
+<span class="sourceLineNo">036</span> */<a name="line.36"></a>
+<span class="sourceLineNo">037</span>public abstract class AbstractBluetoothInterface implements IConnectionInterface {<a name="line.37"></a>
+<span class="sourceLineNo">038</span>        <a name="line.38"></a>
+<span class="sourceLineNo">039</span>        // Constants.<a name="line.39"></a>
+<span class="sourceLineNo">040</span>        protected static final String SERVICE_GUID = "53DA53B9-0447-425A-B9EA-9837505EB59A";<a name="line.40"></a>
+<span class="sourceLineNo">041</span>        protected static final String TX_CHAR_GUID = "7DDDCA00-3E05-4651-9254-44074792C590";<a name="line.41"></a>
+<span class="sourceLineNo">042</span>        protected static final String RX_CHAR_GUID = "F9279EE9-2CD0-410C-81CC-ADF11E4E5AEA";<a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>        protected static final String AES_CIPHER = "AES/CTR/NoPadding";<a name="line.44"></a>
+<span class="sourceLineNo">045</span><a name="line.45"></a>
+<span class="sourceLineNo">046</span>        protected static final int LENGTH_COUNTER = 16;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>        <a name="line.47"></a>
+<span class="sourceLineNo">048</span>        // Variables.<a name="line.48"></a>
+<span class="sourceLineNo">049</span>        protected Cipher cipherEnc;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        protected Cipher cipherDec;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>        <a name="line.51"></a>
+<span class="sourceLineNo">052</span>        protected boolean encrypt = false;<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        <a name="line.53"></a>
+<span class="sourceLineNo">054</span>        /**<a name="line.54"></a>
+<span class="sourceLineNo">055</span>         * Sets the encryption keys and starts to encrypt the communication with the<a name="line.55"></a>
+<span class="sourceLineNo">056</span>         * module.<a name="line.56"></a>
+<span class="sourceLineNo">057</span>         *<a name="line.57"></a>
+<span class="sourceLineNo">058</span>         * @param key Session key.<a name="line.58"></a>
+<span class="sourceLineNo">059</span>         * @param txNonce TX nonce used as prefix of the counter block.<a name="line.59"></a>
+<span class="sourceLineNo">060</span>         * @param rxNonce RX nonce used as prefix of the counter block.<a name="line.60"></a>
+<span class="sourceLineNo">061</span>         *<a name="line.61"></a>
+<span class="sourceLineNo">062</span>         * @throws XBeeException if there is any error setting up the ciphers.<a name="line.62"></a>
+<span class="sourceLineNo">063</span>         */<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        public void setEncryptionKeys(byte[] key, byte[] txNonce, byte[] rxNonce) throws XBeeException {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>                byte[] txCounter = getCounter(txNonce, 1);<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                byte[] rxCounter = getCounter(rxNonce, 1);<a name="line.66"></a>
+<span class="sourceLineNo">067</span><a name="line.67"></a>
+<span class="sourceLineNo">068</span>                SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");<a name="line.68"></a>
+<span class="sourceLineNo">069</span><a name="line.69"></a>
+<span class="sourceLineNo">070</span>                try {<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                        cipherEnc = Cipher.getInstance(AES_CIPHER);<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                        cipherEnc.init(Cipher.ENCRYPT_MODE, secretKeySpec, new IvParameterSpec(txCounter));<a name="line.72"></a>
+<span class="sourceLineNo">073</span><a name="line.73"></a>
+<span class="sourceLineNo">074</span>                        cipherDec = Cipher.getInstance(AES_CIPHER);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                        cipherDec.init(Cipher.DECRYPT_MODE, secretKeySpec, new IvParameterSpec(rxCounter));<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                        throw new XBeeException("Could not set the encryption keys", e);<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                }<a name="line.78"></a>
+<span class="sourceLineNo">079</span><a name="line.79"></a>
+<span class="sourceLineNo">080</span>                encrypt = true;<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        }<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        <a name="line.82"></a>
+<span class="sourceLineNo">083</span>        /**<a name="line.83"></a>
+<span class="sourceLineNo">084</span>         * Generates and returns the encryption counter with the given nonce and<a name="line.84"></a>
+<span class="sourceLineNo">085</span>         * count value.<a name="line.85"></a>
+<span class="sourceLineNo">086</span>         *<a name="line.86"></a>
+<span class="sourceLineNo">087</span>         * @param nonce Nonce used as prefix of the counter block.<a name="line.87"></a>
+<span class="sourceLineNo">088</span>         * @param count Count value.<a name="line.88"></a>
+<span class="sourceLineNo">089</span>         *<a name="line.89"></a>
+<span class="sourceLineNo">090</span>         * @return The encryption counter.<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         */<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        private byte[] getCounter(byte[] nonce, int count) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                byte[] counter = new byte[LENGTH_COUNTER];<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                System.arraycopy(nonce, 0, counter, 0, nonce.length);<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                byte[] countBytes = ByteUtils.intToByteArray(count);<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                System.arraycopy(countBytes, 0, counter, nonce.length, countBytes.length);<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                return counter;<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        }<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        <a name="line.99"></a>
+<span class="sourceLineNo">100</span>        /*<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * (non-Javadoc)<a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * @see com.digi.xbee.api.connection.IConnectionInterface#getConnectionType()<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        @Override<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        public ConnectionType getConnectionType() {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                return ConnectionType.BLUETOOTH;<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>}<a name="line.108"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

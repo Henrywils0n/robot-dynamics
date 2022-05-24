@@ -1,11 +1,18 @@
 #include <SoftwareSerial.h>
+#include <XBee.h>
 // motor A is left, B is right
-#define DIRB 7  // Direction control for motor B
-#define DIRA 8  // Direction control for motor A
-#define PWMA 9  // PWM control (speed) for motor A
-#define PWMB 10 // PWM control (speed) for motor B
-SoftwareSerial XBee(4, 5);
-
+#define DIRB 7             // Direction control for motor B
+#define DIRA 8             // Direction control for motor A
+#define PWMA 9             // PWM control (speed) for motor A
+#define PWMB 10            // PWM control (speed) for motor B
+#define hostAddress 0xBEEF // MY address of the host XBee
+XBee xbee = XBee();
+// union used to convert the float to binary data so it can be sent over the XBee
+union payload
+{
+    float floatVal;
+    uint8_t binary[sizeof(float)];
+};
 void setupArdumoto()
 {
     // All pins should be setup as outputs:
@@ -38,7 +45,7 @@ public:
         y = Y;
         theta = THETA;
         setupArdumoto();
-        XBee.begin(9600);
+        xbee.setSerial(Serial);
     }
 
     // moves the robot at velocity v and angular velocity w
@@ -61,20 +68,14 @@ public:
         analogWrite(PWMB, WR);
         analogWrite(PWMA, WL);
     }
-    // gets communication from the xbee
-    int checkComm(void)
+    // function sends a float to the host
+    void sendTransmission(float message)
     {
-        int received;
-        if (XBee.available())
-        {
-            received = XBee.read();
-            Serial.println(received);
-        }
-        return received;
-    }
-    void sendMessage(char message)
-    {
-        XBee.write(message);
+        payload Payload;
+        Payload.floatVal = message;
+        Tx16Request tx = Tx16Request(hostAddress, Payload.binary, sizeof(Payload.binary));
+        TxStatusResponse txStatus = TxStatusResponse();
+        xbee.send(tx);
     }
     // function that moves the robot to a certain position
 };
