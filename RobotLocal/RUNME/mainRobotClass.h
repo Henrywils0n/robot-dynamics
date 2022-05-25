@@ -9,7 +9,7 @@
 unsigned int leftEncoderTicks = 0;
 unsigned int rightEncoderTicks = 0;
 float pi = 3.14159265358979323846;
-float Err = 0.02;
+float Err = 0.04;
 void setupArdumoto()
 {
     // All pins should be setup as outputs:
@@ -72,7 +72,7 @@ public:
         float wR = (v + R * w) / r;
         float wL = (v - R * w) / r;
         // set Directions according to the speed
-        // 1 moves forward, -1 moves backward (if this isnt true on a robot flip the wires going to the motor)
+        // 1 moves forward, -1 moves backward (if this isn't true on a robot flip the wires going to the motor)
         DirWL = -1 + 2 * (wL >= 0);
         DirWR = -1 + 2 * (wR >= 0);
         // using the calibrated values convert the speed to the correct PWM values
@@ -97,28 +97,32 @@ public:
         analogWrite(PWMR, WR);
         analogWrite(PWML, WL);
     }
+    void updatePosition()
+    {
+        int diffLeft = leftEncoderTicks;
+        clearLeftEncoder();
+        int diffRight = rightEncoderTicks;
+        clearRightEncoder();
+        float dL = (diffLeft * DirWL + diffRight * DirWR) * pi / 192 * r * 0.5;
+        float dTheta = (diffRight * DirWR - diffLeft * DirWL) * pi / 192 * r / R * 0.5;
+        float dX = dL * cos(theta);
+        float dY = dL * sin(theta);
+        x += dX;
+        y += dY;
+        theta += dTheta;
+        fixTheta();
+    }
     void moveTo(float X, float Y)
     {
-        int prevLEncoder = leftEncoderTicks;
-        int prevREncoder = rightEncoderTicks;
         float err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
+        float thetaErr = atan2(Y - y, X - x) - theta;
         while (err > Err)
         {
-            int diffLeft = leftEncoderTicks;
-            clearLeftEncoder();
-            int diffRight = rightEncoderTicks;
-            clearRightEncoder();
-            float dL = (diffLeft * DirWL + diffRight * DirWR) * pi / 192 * r * 0.5;
-            float dTheta = (diffRight * DirWR - diffLeft * DirWL) * pi / 192 * r / R * 0.5;
-            float dX = dL * cos(theta);
-            float dY = dL * sin(theta);
-            x += dX;
-            y += dY;
-            theta += dTheta;
-            fixTheta();
+            updatePosition();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
-            float targetTheta = atan2(Y - y, X - x);
-            drive(err * 0.5 * (targetTheta - theta < pi / 4), (targetTheta - theta) * 1);
+            thetaErr = atan2(Y - y, X - x) - theta;
+
+            drive(err * 0.5 * (abs(thetaErr) < (pi / 3)), thetaErr *0.5);
             // delay(10)
             Serial.print("(");
             Serial.print(x);
