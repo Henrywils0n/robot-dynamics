@@ -9,7 +9,7 @@
 unsigned int leftEncoderTicks = 0;
 unsigned int rightEncoderTicks = 0;
 float pi = 3.14159265358979323846;
-float Err = 0.04;
+float Err = 0.05;
 void setupArdumoto()
 {
     // All pins should be setup as outputs:
@@ -44,7 +44,7 @@ class Robot
 {
 public:
     // radius of the wheels
-    float r = 0.033;
+    float r = 0.032;
     // radius from the centre to the wheel
     float R = 0.08;
     // position of the robot on the grid
@@ -99,6 +99,7 @@ public:
     }
     void updatePosition()
     {
+      
         int diffLeft = leftEncoderTicks;
         clearLeftEncoder();
         int diffRight = rightEncoderTicks;
@@ -111,6 +112,8 @@ public:
         y += dY;
         theta += dTheta;
         fixTheta();
+        Serial.println(diffLeft);
+        Serial.println(diffRight);
     }
     void moveTo(float X, float Y)
     {
@@ -122,8 +125,9 @@ public:
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
             thetaErr = atan2(Y - y, X - x) - theta;
 
-            drive(err * 0.5 * (abs(thetaErr) < (pi / 3)), thetaErr *0.5);
-            // delay(10)
+            drive(err * 0.4 * (abs(thetaErr) < (pi / 3)), thetaErr *0.5);
+            delay(10);
+            /*
             Serial.print("(");
             Serial.print(x);
             Serial.print(",");
@@ -131,6 +135,7 @@ public:
             Serial.print(",");
             Serial.print(theta);
             Serial.print(")\n");
+            */
         }
         drive(0, 0);
     }
