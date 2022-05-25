@@ -1,10 +1,8 @@
-
-#include <XBee.h>
 // motor A is left, B is right
-#define DIRB 7                       // Direction control for motor B
-#define DIRA 8                       // Direction control for motor A
-#define PWMA 9                       // PWM control (speed) for motor A
-#define PWMB 10                      // PWM control (speed) for motor B
+#define DIRR 7                       // Direction control for motor B
+#define DIRL 8                       // Direction control for motor A
+#define PWML 9                       // PWM control (speed) for motor A
+#define PWMR 10                      // PWM control (speed) for motor B
 #define hostAddress 0013A20041466E40 // MY address of the host XBee
 #define leftEncoder 2
 #define rightEncoder 3
@@ -15,16 +13,16 @@ float Err = 0.02;
 void setupArdumoto()
 {
     // All pins should be setup as outputs:
-    pinMode(PWMA, OUTPUT);
-    pinMode(PWMB, OUTPUT);
-    pinMode(DIRA, OUTPUT);
-    pinMode(DIRB, OUTPUT);
+    pinMode(PWML, OUTPUT);
+    pinMode(PWMR, OUTPUT);
+    pinMode(DIRL, OUTPUT);
+    pinMode(DIRR, OUTPUT);
 
     // Initialize all pins as low:
-    digitalWrite(PWMA, LOW);
-    digitalWrite(PWMB, LOW);
-    digitalWrite(DIRA, LOW);
-    digitalWrite(DIRB, LOW);
+    digitalWrite(PWML, LOW);
+    digitalWrite(PWMR, LOW);
+    digitalWrite(DIRL, LOW);
+    digitalWrite(DIRR, LOW);
 }
 void incrementLeftEncoder()
 {
@@ -46,7 +44,7 @@ class Robot
 {
 public:
     // radius of the wheels
-    float r = 0.034;
+    float r = 0.033;
     // radius from the centre to the wheel
     float R = 0.08;
     // position of the robot on the grid
@@ -94,10 +92,10 @@ public:
         else if (WL <= 75)
             WL = 0;
         // sending signal to the motors
-        digitalWrite(DIRB, DirWR);
-        digitalWrite(DIRA, DirWL);
-        analogWrite(PWMB, WR);
-        analogWrite(PWMA, WL);
+        digitalWrite(DIRR, DirWR);
+        digitalWrite(DIRL, DirWL);
+        analogWrite(PWMR, WR);
+        analogWrite(PWML, WL);
     }
     void moveTo(float X, float Y)
     {
@@ -107,8 +105,8 @@ public:
         while (err > Err)
         {
             int diffLeft = leftEncoderTicks;
-            int diffRight = rightEncoderTicks;
             clearLeftEncoder();
+            int diffRight = rightEncoderTicks;
             clearRightEncoder();
             float dL = (diffLeft * DirWL + diffRight * DirWR) * pi / 192 * r * 0.5;
             float dTheta = (diffRight * DirWR - diffLeft * DirWL) * pi / 192 * r / R * 0.5;
@@ -117,25 +115,39 @@ public:
             x += dX;
             y += dY;
             theta += dTheta;
+            fixTheta();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
             float targetTheta = atan2(Y - y, X - x);
-            drive(err * 0.25, (targetTheta - theta) * 1.2);
-            delay(10);
+            drive(err * 0.5 * (targetTheta - theta < pi / 4), (targetTheta - theta) * 1);
+            // delay(10)
             Serial.print("(");
             Serial.print(x);
             Serial.print(",");
             Serial.print(y);
+            Serial.print(",");
+            Serial.print(theta);
             Serial.print(")\n");
         }
         drive(0, 0);
     }
+    void fixTheta()
+    {
+        while (theta > pi)
+        {
+            theta -= 2 * pi;
+        }
+        while (theta < -pi)
+        {
+            theta += 2 * pi;
+        }
+    }
     // function to just run the motor full out and calculate the angular velocity
     void calibrateAngularV()
     {
-        digitalWrite(DIRB, 1);
-        digitalWrite(DIRA, 1);
-        analogWrite(PWMB, 255);
-        analogWrite(PWMA, 255);
+        digitalWrite(DIRR, 1);
+        digitalWrite(DIRL, 1);
+        analogWrite(PWMR, 255);
+        analogWrite(PWML, 255);
         prevLeftEncoderTicks = leftEncoderTicks;
         prevRightEncoderTicks = rightEncoderTicks;
         int start = millis();
@@ -160,20 +172,29 @@ public:
     // function slowly increments the speed to find the minimum input to get it to move
     void calibrateMotorMin()
     {
-        digitalWrite(DIRB, 1);
-        digitalWrite(DIRA, 1);
-        analogWrite(PWMB, 0);
-        analogWrite(PWMA, 0);
+        digitalWrite(DIRR, 1);
+        digitalWrite(DIRL, 1);
+        analogWrite(PWMR, 0);
+        analogWrite(PWML, 0);
         int speed = 0;
         while (true)
         {
-            analogWrite(PWMB, speed);
-            analogWrite(PWMA, speed);
+            analogWrite(PWMR, speed);
+            analogWrite(PWML, speed);
             Serial.println(speed);
             speed++;
             delay(5000);
         }
     }
-
+    // blank function used for test purposes
+    void test(void)
+    {
+        digitalWrite(DIRR, 1);
+        digitalWrite(DIRL, 1);
+        analogWrite(PWMR, 255);
+        analogWrite(PWML, 0);
+        delay(5000);
+        analogWrite(PWMR, 0);
+    }
     // function that moves the robot to a certain position
 };
