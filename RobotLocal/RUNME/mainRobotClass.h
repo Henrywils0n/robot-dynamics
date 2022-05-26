@@ -3,9 +3,11 @@
 #define DIRL 8                       // Direction control for motor A
 #define PWML 9                       // PWM control (speed) for motor A
 #define PWMR 10                      // PWM control (speed) for motor B
+#define INDICATORLED 13              // LED to indicate when robot reaches position
 #define hostAddress 0013A20041466E40 // MY address of the host XBee
 #define leftEncoder 2
 #define rightEncoder 3
+
 unsigned int leftEncoderTicks = 0;
 unsigned int rightEncoderTicks = 0;
 float pi = 3.14159265358979323846;
@@ -44,7 +46,7 @@ class Robot
 {
 public:
     // radius of the wheels
-    float r = 0.0334;
+    float r = 0.033;
     // radius from the centre to the wheel
     float R = 0.08;
     // position of the robot on the grid
@@ -52,6 +54,14 @@ public:
     byte DirWL, DirWR;
     int prevLeftEncoderTicks = 0;
     int prevRightEncoderTicks = 0;
+    // Linear velocity gains
+    float Kp = 0.5;
+    float Ki = 0;
+    float Kd = 0.0005;
+    // Angular velocity gains
+    float KpTheta = 0.5;
+    float KiTheta = 0;
+    float KdTheta = 0.0;
     // sets up each board and should initialize communication with the xbee's
     Robot(float X, float Y, float THETA)
     {
@@ -63,6 +73,7 @@ public:
         pinMode(rightEncoder, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(leftEncoder), incrementLeftEncoder, CHANGE);
         attachInterrupt(digitalPinToInterrupt(rightEncoder), incrementRightEncoder, CHANGE);
+        pinMode(INDICATORLED, OUTPUT);
     }
 
     // moves the robot at velocity v and angular velocity w
@@ -85,11 +96,11 @@ public:
         // setting cutoffs for the motors
         if (WR > 255)
             WR = 255;
-        else if (abs(wR) <= 0.5)
+        else if (abs(wR) <= 0.25)
             WR = 0;
         if (WL > 255)
             WL = 255;
-        else if (abs(wL) <= 0.5)
+        else if (abs(wL) <= 0.25)
             WL = 0;
         // sending signal to the motors
         digitalWrite(DIRR, DirWR);
@@ -106,7 +117,7 @@ public:
         clearLeftEncoder();
         int diffRight = rightEncoderTicks;
         clearRightEncoder();
-        float dL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 +2 * DirWR)) * pi / 192 * r * 0.5;
+        float dL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 + 2 * DirWR)) * pi / 192 * r * 0.5;
         float EncoderdTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 192 * r / R * 0.5;
         float EncoderdX = dL * cos(theta);
         float EncoderdY = dL * sin(theta);
@@ -118,43 +129,60 @@ public:
     // send x,y position and the robot will move to that position
     void moveTo(float X, float Y)
     {
-        
+        int direction = 1;
+        float integral = 0;
+        float derivative = 0;
+        float integralTheta = 0;
+        float derivativeTheta = 0;
+        float prevErr;
+        float prevThetaErr;
+        // initial turn if the angle needed to turn is greater than pi/4 (should only be used on the first position)
         float thetaErr = atan2(Y - y, X - x) - theta;
+        /*
         if (abs(thetaErr) > pi / 4)
         {
             while (abs(thetaErr) > pi / 8)
             {
-                drive(0, 1* thetaErr);
+                drive(0, 1.5 * thetaErr);
                 updatePosition();
                 thetaErr = atan2(Y - y, X - x) - theta;
                 Serial.println("turning");
             }
         }
+        */
+        int prevTime = micros();
+        int currentTime;
         float err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
         while (err > Err)
         {
-            if (abs(thetaErr) > pi / 2)
-            {
-                while (abs(thetaErr) > pi / 16)
-                {
-                    drive(0, 0.4 * thetaErr);
-                    updatePosition();
-                    thetaErr = atan2(Y - y, X - x) - theta;
-                    fixTheta();
-                    Serial.println("turning");
-                }
-            }
             updatePosition();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
             thetaErr = atan2(Y - y, X - x) - theta;
-            drive(err * 0.6, thetaErr * 0.5);
-            delay(10);
+            currentTime = micros();
+            integral += err;
+            derivative = (err - prevErr) / (currentTime - prevTime);
+            integralTheta += thetaErr;
+            derivativeTheta = (thetaErr - prevThetaErr) / (currentTime - prevTime);
+            prevTime = currentTime;
+            prevErr = err;
+            prevThetaErr = thetaErr;
+            direction = 1;
+            /*
+            if (abs(thetaErr) >= pi)
+            {
+                direction = -1;
+                thetaErr = fixAngle(thetaErr - pi);
+            }
+            */
+            float v = Kp * err + Ki * integral + Kd * derivative;
+            float w = KpTheta * thetaErr + KiTheta * integralTheta + KdTheta * derivativeTheta;
+            drive(v, w);
             /*
             Serial.print(err);
             Serial.print(thetaErr);
             Serial.print("\n");
             */
-            
+
             Serial.print("(");
             Serial.print(x);
             Serial.print(",");
@@ -162,8 +190,8 @@ public:
             Serial.print(",");
             Serial.print(theta);
             Serial.print(")\n");
-            
         }
+        // stop the robot
         drive(0, 0);
     }
     // returns theta to the bounds +/-pi
@@ -177,5 +205,17 @@ public:
         {
             theta += 2 * pi;
         }
+    }
+    float fixAngle(float angle)
+    {
+        while (angle > pi)
+        {
+            angle -= 2 * pi;
+        }
+        while (angle < -pi)
+        {
+            angle += 2 * pi;
+        }
+        return angle;
     }
 };
