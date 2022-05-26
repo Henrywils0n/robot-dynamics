@@ -11,7 +11,7 @@
 unsigned int leftEncoderTicks = 0;
 unsigned int rightEncoderTicks = 0;
 float pi = 3.14159265358979323846;
-float Err = 0.05;
+float Err = 0.03;
 void setupArdumoto()
 {
     // All pins should be setup as outputs:
@@ -46,22 +46,22 @@ class Robot
 {
 public:
     // radius of the wheels
-    float r = 0.033;
+    float r = 0.04;
     // radius from the centre to the wheel
-    float R = 0.08;
+    float R = 0.079;
     // position of the robot on the grid
     float x, y, theta;
     byte DirWL, DirWR;
     int prevLeftEncoderTicks = 0;
     int prevRightEncoderTicks = 0;
     // Linear velocity gains
-    float Kp = 0.5;
-    float Ki = 0;
-    float Kd = 0.0005;
+    float Kp = 2.5;
+    float Ki = 0.005;
+    float Kd = 0.75;
     // Angular velocity gains
-    float KpTheta = 0.5;
-    float KiTheta = 0;
-    float KdTheta = 0.0;
+    float KpTheta = 10;
+    float KiTheta = 1;
+    float KdTheta = 1.5;
     // sets up each board and should initialize communication with the xbee's
     Robot(float X, float Y, float THETA)
     {
@@ -159,14 +159,15 @@ public:
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
             thetaErr = atan2(Y - y, X - x) - theta;
             currentTime = micros();
-            integral += err;
-            derivative = (err - prevErr) / (currentTime - prevTime);
-            integralTheta += thetaErr;
-            derivativeTheta = (thetaErr - prevThetaErr) / (currentTime - prevTime);
+            derivative = (err - prevErr) / (currentTime - prevTime) * 1000000;
+            integral += err * (-1 + 2 * (derivative <= 0)) * (currentTime - prevTime) / 1000000;
+            integralTheta += thetaErr * (currentTime - prevTime) / 1000000;
+            derivativeTheta = (thetaErr - prevThetaErr) / (currentTime - prevTime) * 1000000;
             prevTime = currentTime;
             prevErr = err;
             prevThetaErr = thetaErr;
             direction = 1;
+            Serial.println(integralTheta);
             /*
             if (abs(thetaErr) >= pi)
             {
@@ -177,12 +178,13 @@ public:
             float v = Kp * err + Ki * integral + Kd * derivative;
             float w = KpTheta * thetaErr + KiTheta * integralTheta + KdTheta * derivativeTheta;
             drive(v, w);
+            delay(5);
             /*
             Serial.print(err);
             Serial.print(thetaErr);
             Serial.print("\n");
             */
-
+            /*
             Serial.print("(");
             Serial.print(x);
             Serial.print(",");
@@ -190,6 +192,7 @@ public:
             Serial.print(",");
             Serial.print(theta);
             Serial.print(")\n");
+            */
         }
         // stop the robot
         drive(0, 0);
