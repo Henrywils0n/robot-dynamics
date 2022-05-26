@@ -44,7 +44,7 @@ class Robot
 {
 public:
     // radius of the wheels
-    float r = 0.032;
+    float r = 0.0334;
     // radius from the centre to the wheel
     float R = 0.08;
     // position of the robot on the grid
@@ -80,16 +80,16 @@ public:
         // at max reading W of each wheel is about 19.5 on the floor(precision does not really matter its just helpful)
         // testing without the floor shows the left motor on laplace being about a little faster (should test on each robot to have the robot drive straighter)
         // this map is linear but the velocity is not (doesent really matter because of pid control)
-        int WR = map(abs(wR), 0, 19.2, 75, 255);
-        int WL = map(abs(wL), 0, 20.5, 75, 255);
+        int WR = map(abs(wR), 0, 19.2, 76, 255);
+        int WL = map(abs(wL), 0, 20.5, 76, 255);
         // setting cutoffs for the motors
         if (WR > 255)
             WR = 255;
-        else if (WR <= 75)
+        else if (abs(wR) <= 0.5)
             WR = 0;
         if (WL > 255)
             WL = 255;
-        else if (WL <= 75)
+        else if (abs(wL) <= 0.5)
             WL = 0;
         // sending signal to the motors
         digitalWrite(DIRR, DirWR);
@@ -106,8 +106,8 @@ public:
         clearLeftEncoder();
         int diffRight = rightEncoderTicks;
         clearRightEncoder();
-        float dL = (diffLeft * (-1 - 2 * DirWL) + diffRight * (-1 - 2 * DirWR)) * pi / 192 * r * 0.5;
-        float EncoderdTheta = (diffRight * (-1 - 2 * DirWR) - diffLeft * (-1 - 2 * DirWL)) * pi / 192 * r / R * 0.5;
+        float dL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 +2 * DirWR)) * pi / 192 * r * 0.5;
+        float EncoderdTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 192 * r / R * 0.5;
         float EncoderdX = dL * cos(theta);
         float EncoderdY = dL * sin(theta);
         x += EncoderdX;
@@ -118,25 +118,21 @@ public:
     // send x,y position and the robot will move to that position
     void moveTo(float X, float Y)
     {
-
+        
         float thetaErr = atan2(Y - y, X - x) - theta;
-        /*
         if (abs(thetaErr) > pi / 4)
         {
-            while (abs(thetaErr) > pi / 16)
+            while (abs(thetaErr) > pi / 8)
             {
-                drive(0, 0.4 * thetaErr);
+                drive(0, 1* thetaErr);
                 updatePosition();
                 thetaErr = atan2(Y - y, X - x) - theta;
-                fixTheta();
                 Serial.println("turning");
             }
         }
-        */
         float err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
         while (err > Err)
         {
-            /*
             if (abs(thetaErr) > pi / 2)
             {
                 while (abs(thetaErr) > pi / 16)
@@ -148,16 +144,17 @@ public:
                     Serial.println("turning");
                 }
             }
-            */
             updatePosition();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
             thetaErr = atan2(Y - y, X - x) - theta;
-            drive(err * 0.4, thetaErr * 0.6);
+            drive(err * 0.6, thetaErr * 0.5);
             delay(10);
+            /*
             Serial.print(err);
             Serial.print(thetaErr);
             Serial.print("\n");
-            /*
+            */
+            
             Serial.print("(");
             Serial.print(x);
             Serial.print(",");
@@ -165,7 +162,7 @@ public:
             Serial.print(",");
             Serial.print(theta);
             Serial.print(")\n");
-            */
+            
         }
         drive(0, 0);
     }
