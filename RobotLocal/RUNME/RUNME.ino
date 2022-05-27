@@ -7,12 +7,13 @@ void setup(void)
     Serial.begin(9600);
 }
 
-Robot robotA(0, 0, pi / 2);
+Robot robotA(0, 0, 0);
 
 void loop(void)
 {
     robotA.moveTo(0, 1);
     digitalWrite(INDICATORLED, HIGH);
-    // robotA.drive(0,1);
-    delay(10000);
+    delay(1000);
+    digitalWrite(INDICATORLED, LOW);
+    robotA.moveTo(0, 0);
 }

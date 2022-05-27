@@ -46,7 +46,7 @@ class Robot
 {
 public:
     // radius of the wheels
-    float r = 0.04;
+    float r = 0.034;
     // radius from the centre to the wheel
     float R = 0.079;
     // position of the robot on the grid
@@ -55,11 +55,11 @@ public:
     int prevLeftEncoderTicks = 0;
     int prevRightEncoderTicks = 0;
     // Linear velocity gains
-    float Kp = 2.5;
+    float Kp = 1.5;
     float Ki = 0.005;
-    float Kd = 0.75;
+    float Kd = 0.5;
     // Angular velocity gains
-    float KpTheta = 10;
+    float KpTheta = 11;
     float KiTheta = 1;
     float KdTheta = 1.5;
     // sets up each board and should initialize communication with the xbee's
@@ -89,10 +89,8 @@ public:
         // using the calibrated values convert the speed to the correct PWM values
         // robot starts moving at 103 (on laplace)
         // at max reading W of each wheel is about 19.5 on the floor(precision does not really matter its just helpful)
-        // testing without the floor shows the left motor on laplace being about a little faster (should test on each robot to have the robot drive straighter)
-        // this map is linear but the velocity is not (doesent really matter because of pid control)
-        int WR = map(abs(wR), 0, 19.2, 76, 255);
-        int WL = map(abs(wL), 0, 20.5, 76, 255);
+        int WR = map(abs(wR), 0, 19.5, 76, 255);
+        int WL = map(abs(wL), 0, 19.8, 76, 255);
         // setting cutoffs for the motors
         if (WR > 255)
             WR = 255;
@@ -129,62 +127,52 @@ public:
     // send x,y position and the robot will move to that position
     void moveTo(float X, float Y)
     {
-        int direction = 1;
         float integral = 0;
         float derivative = 0;
         float integralTheta = 0;
         float derivativeTheta = 0;
         float prevErr;
         float prevThetaErr;
-        // initial turn if the angle needed to turn is greater than pi/4 (should only be used on the first position)
-        float thetaErr = atan2(Y - y, X - x) - theta;
-        /*
-        if (abs(thetaErr) > pi / 4)
-        {
-            while (abs(thetaErr) > pi / 8)
-            {
-                drive(0, 1.5 * thetaErr);
-                updatePosition();
-                thetaErr = atan2(Y - y, X - x) - theta;
-                Serial.println("turning");
-            }
-        }
-        */
+
         int prevTime = micros();
         int currentTime;
+        float directionalErr;
         float err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
+        float thetaErr = fixAngle(atan2(Y - y, X - x) - theta);
+        // continues to drive while the positional Error on position is greater than the tolerance of Err
         while (err > Err)
         {
+            // updates position, time, and error
             updatePosition();
+            currentTime = micros();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
             thetaErr = atan2(Y - y, X - x) - theta;
-            currentTime = micros();
-            derivative = (err - prevErr) / (currentTime - prevTime) * 1000000;
-            integral += err * (-1 + 2 * (derivative <= 0)) * (currentTime - prevTime) / 1000000;
+            // multiplying by the cosine of the angle to return directionality to the absolute error (this will also cause the robot to drive in reverse and drive slower when forwards or reverse is not as productive a direction)
+            directionalErr = err * cos(thetaErr);
+            // flips the error by 180 degrees if the robot is driving backwards
+            if (directionalErr < 0)
+            {
+                thetaErr = fixAngle(thetaErr - pi);
+            }
+            // PID control for the linear and angular velocity
+            derivative = (directionalErr - prevErr) / (currentTime - prevTime) * 1000000;
+            integral += directionalErr * (currentTime - prevTime) / 1000000;
             integralTheta += thetaErr * (currentTime - prevTime) / 1000000;
             derivativeTheta = (thetaErr - prevThetaErr) / (currentTime - prevTime) * 1000000;
             prevTime = currentTime;
-            prevErr = err;
+            prevErr = directionalErr;
             prevThetaErr = thetaErr;
-            direction = 1;
-            Serial.println(integralTheta);
-            /*
-            if (abs(thetaErr) >= pi)
-            {
-                direction = -1;
-                thetaErr = fixAngle(thetaErr - pi);
-            }
-            */
-            float v = Kp * err + Ki * integral + Kd * derivative;
+            float v = Kp * directionalErr + Ki * integral + Kd * derivative;
             float w = KpTheta * thetaErr + KiTheta * integralTheta + KdTheta * derivativeTheta;
             drive(v, w);
+            // setting a slight delay to ensure that sufficient encoder ticks are captured
             delay(5);
             /*
             Serial.print(err);
             Serial.print(thetaErr);
             Serial.print("\n");
             */
-            /*
+
             Serial.print("(");
             Serial.print(x);
             Serial.print(",");
@@ -192,7 +180,6 @@ public:
             Serial.print(",");
             Serial.print(theta);
             Serial.print(")\n");
-            */
         }
         // stop the robot
         drive(0, 0);
@@ -209,6 +196,7 @@ public:
             theta += 2 * pi;
         }
     }
+    // same as fix theta but it changes a given angle instead of the robot heading
     float fixAngle(float angle)
     {
         while (angle > pi)
