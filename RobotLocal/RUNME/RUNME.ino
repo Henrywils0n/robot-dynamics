@@ -1,5 +1,9 @@
 
 #include <math.h>
+#include <Adafruit_LSM9DS0.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <SPI.h>
 #include "mainRobotClass.h"
 
 void setup(void)

@@ -42,6 +42,7 @@ void clearRightEncoder()
 {
     rightEncoderTicks = 0;
 }
+
 class Robot
 {
 public:
@@ -62,7 +63,10 @@ public:
     float KpTheta = 11;
     float KiTheta = 1;
     float KdTheta = 1.5;
-    // sets up each board and should initialize communication with the xbee's
+    // Sensor variables
+    Adafruit_LSM9DS0 lsm;
+    sensor_t accel, mag, gyro, temp;
+    // sets up required pin modes and objects
     Robot(float X, float Y, float THETA)
     {
         x = X;
@@ -74,8 +78,29 @@ public:
         attachInterrupt(digitalPinToInterrupt(leftEncoder), incrementLeftEncoder, CHANGE);
         attachInterrupt(digitalPinToInterrupt(rightEncoder), incrementRightEncoder, CHANGE);
         pinMode(INDICATORLED, OUTPUT);
+        lsm = Adafruit_LSM9DS0();
+        setupSensor();
     }
+    void setupSensor()
+    {
+        // 1.) Set the accelerometer range
+        lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_2G);
+        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_4G);
+        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_6G);
+        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_8G);
+        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_16G);
 
+        // 2.) Set the magnetometer sensitivity
+        lsm.setupMag(lsm.LSM9DS0_MAGGAIN_2GAUSS);
+        // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_4GAUSS);
+        // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_8GAUSS);
+        // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_12GAUSS);
+
+        // 3.) Setup the gyroscope
+        lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_245DPS);
+        // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_500DPS);
+        // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_2000DPS);
+    }
     // moves the robot at velocity v and angular velocity w
     void drive(float v, float w)
     {
@@ -110,15 +135,15 @@ public:
     // TO DO add accelerometer, gyroscope, and magnetometer to the estimates
     void updatePosition()
     {
-
+        lsm.getEvent(&accel, &mag, &gyro, &temp);
         int diffLeft = leftEncoderTicks;
         clearLeftEncoder();
         int diffRight = rightEncoderTicks;
         clearRightEncoder();
-        float dL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 + 2 * DirWR)) * pi / 192 * r * 0.5;
+        float EncoderdL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 + 2 * DirWR)) * pi / 192 * r * 0.5;
         float EncoderdTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 192 * r / R * 0.5;
-        float EncoderdX = dL * cos(theta);
-        float EncoderdY = dL * sin(theta);
+        float EncoderdX = EncoderdL * cos(theta);
+        float EncoderdY = EncoderdL * sin(theta);
         x += EncoderdX;
         y += EncoderdY;
         theta += EncoderdTheta;
@@ -165,8 +190,6 @@ public:
             float v = Kp * directionalErr + Ki * integral + Kd * derivative;
             float w = KpTheta * thetaErr + KiTheta * integralTheta + KdTheta * derivativeTheta;
             drive(v, w);
-            // setting a slight delay to ensure that sufficient encoder ticks are captured
-            delay(5);
             /*
             Serial.print(err);
             Serial.print(thetaErr);
