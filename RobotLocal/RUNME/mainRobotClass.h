@@ -3,7 +3,6 @@
 #define DIRL 8                       // Direction control for motor A
 #define PWML 9                       // PWM control (speed) for motor A
 #define PWMR 10                      // PWM control (speed) for motor B
-#define INDICATORLED 13              // LED to indicate when robot reaches position
 #define hostAddress 0013A20041466E40 // MY address of the host XBee
 #define leftEncoder 2
 #define rightEncoder 3
@@ -12,6 +11,7 @@ unsigned int leftEncoderTicks = 0;
 unsigned int rightEncoderTicks = 0;
 float pi = 3.14159265358979323846;
 float Err = 0.03;
+Adafruit_LSM9DS0 lsm = Adafruit_LSM9DS0();
 void setupArdumoto()
 {
     // All pins should be setup as outputs:
@@ -42,6 +42,32 @@ void clearRightEncoder()
 {
     rightEncoderTicks = 0;
 }
+void setupSensor()
+{
+    if (!lsm.begin())
+    {
+        Serial.println("Oops ... unable to initialize the LSM9DS0. Check your wiring!");
+        while (1)
+            ;
+    }
+    //  1.) Set the accelerometer range
+    lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_2G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_4G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_6G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_8G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_16G);
+
+    // 2.) Set the magnetometer sensitivity
+    lsm.setupMag(lsm.LSM9DS0_MAGGAIN_2GAUSS);
+    // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_4GAUSS);
+    // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_8GAUSS);
+    // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_12GAUSS);
+
+    // 3.) Setup the gyroscope
+    lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_245DPS);
+    // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_500DPS);
+    // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_2000DPS);
+}
 
 class Robot
 {
@@ -55,6 +81,9 @@ public:
     byte DirWL, DirWR;
     int prevLeftEncoderTicks = 0;
     int prevRightEncoderTicks = 0;
+    float prevMagTheta;
+    float magOffset;
+    float prevTimeHeading;
     // Linear velocity gains
     float Kp = 1.5;
     float Ki = 0.005;
@@ -64,8 +93,7 @@ public:
     float KiTheta = 1;
     float KdTheta = 1.5;
     // Sensor variables
-    Adafruit_LSM9DS0 lsm;
-    sensor_t accel, mag, gyro, temp;
+
     // sets up required pin modes and objects
     Robot(float X, float Y, float THETA)
     {
@@ -77,30 +105,8 @@ public:
         pinMode(rightEncoder, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(leftEncoder), incrementLeftEncoder, CHANGE);
         attachInterrupt(digitalPinToInterrupt(rightEncoder), incrementRightEncoder, CHANGE);
-        pinMode(INDICATORLED, OUTPUT);
-        lsm = Adafruit_LSM9DS0();
-        setupSensor();
     }
-    void setupSensor()
-    {
-        // 1.) Set the accelerometer range
-        lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_2G);
-        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_4G);
-        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_6G);
-        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_8G);
-        // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_16G);
 
-        // 2.) Set the magnetometer sensitivity
-        lsm.setupMag(lsm.LSM9DS0_MAGGAIN_2GAUSS);
-        // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_4GAUSS);
-        // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_8GAUSS);
-        // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_12GAUSS);
-
-        // 3.) Setup the gyroscope
-        lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_245DPS);
-        // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_500DPS);
-        // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_2000DPS);
-    }
     // moves the robot at velocity v and angular velocity w
     void drive(float v, float w)
     {
@@ -135,29 +141,49 @@ public:
     // TO DO add accelerometer, gyroscope, and magnetometer to the estimates
     void updatePosition()
     {
-        lsm.getEvent(&accel, &mag, &gyro, &temp);
         int diffLeft = leftEncoderTicks;
         clearLeftEncoder();
         int diffRight = rightEncoderTicks;
         clearRightEncoder();
         float EncoderdL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 + 2 * DirWR)) * pi / 192 * r * 0.5;
-        float EncoderdTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 192 * r / R * 0.5;
         float EncoderdX = EncoderdL * cos(theta);
         float EncoderdY = EncoderdL * sin(theta);
+        updateTheta(diffLeft, diffRight);
         x += EncoderdX;
         y += EncoderdY;
-        theta += EncoderdTheta;
         fixTheta();
+    }
+    void updateTheta(int diffLeft, int diffRight)
+    {
+        sensors_event_t accel, mag, gyro, temp;
+        lsm.getEvent(&accel, &mag, &gyro, &temp);
+        float magTheta = -atan2(mag.magnetic.y, mag.magnetic.x);
+        float dThetaMag = fixAngle(magTheta - prevMagTheta);
+        prevMagTheta = magTheta;
+        float currentTime = micros();
+        // gyro is not very good
+        // float dThetaGyro = (gyro.gyro.z) * (currentTime - prevTimeHeading) * 0.000001;
+        float EncoderdTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 192 * r / R * 0.5;
+        prevTimeHeading = currentTime;
+        theta += (0.06 * dThetaMag + 0.94 * EncoderdTheta);
+        fixTheta();
+    }
+    void updatedL(int diffLeft, int diffRight)
+    {
     }
     // send x,y position and the robot will move to that position
     void moveTo(float X, float Y)
     {
+        sensors_event_t accel, mag, gyro, temp;
+        lsm.getEvent(&accel, &mag, &gyro, &temp);
+        prevMagTheta = -atan2(mag.magnetic.y, mag.magnetic.x);
         float integral = 0;
         float derivative = 0;
         float integralTheta = 0;
         float derivativeTheta = 0;
         float prevErr;
         float prevThetaErr;
+        prevTimeHeading = 0;
 
         int prevTime = micros();
         int currentTime;
@@ -195,7 +221,7 @@ public:
             Serial.print(thetaErr);
             Serial.print("\n");
             */
-
+            /*
             Serial.print("(");
             Serial.print(x);
             Serial.print(",");
@@ -203,6 +229,7 @@ public:
             Serial.print(",");
             Serial.print(theta);
             Serial.print(")\n");
+            */
         }
         // stop the robot
         drive(0, 0);
