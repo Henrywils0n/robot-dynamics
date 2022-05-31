@@ -81,9 +81,6 @@ public:
     byte DirWL, DirWR;
     int prevLeftEncoderTicks = 0;
     int prevRightEncoderTicks = 0;
-    float prevMagTheta;
-    float magOffset;
-    float prevTimeHeading;
     // Linear velocity gains
     float Kp = 1.5;
     float Ki = 0.005;
@@ -155,17 +152,12 @@ public:
     }
     void updateTheta(int diffLeft, int diffRight)
     {
-        sensors_event_t accel, mag, gyro, temp;
-        lsm.getEvent(&accel, &mag, &gyro, &temp);
-        float magTheta = -atan2(mag.magnetic.y, mag.magnetic.x);
-        float dThetaMag = fixAngle(magTheta - prevMagTheta);
-        prevMagTheta = magTheta;
-        float currentTime = micros();
+
         // gyro is not very good
         // float dThetaGyro = (gyro.gyro.z) * (currentTime - prevTimeHeading) * 0.000001;
         float EncoderdTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 192 * r / R * 0.5;
-        prevTimeHeading = currentTime;
-        theta += (0.06 * dThetaMag + 0.94 * EncoderdTheta);
+
+        theta += (EncoderdTheta);
         fixTheta();
     }
     void updatedL(int diffLeft, int diffRight)
@@ -176,14 +168,12 @@ public:
     {
         sensors_event_t accel, mag, gyro, temp;
         lsm.getEvent(&accel, &mag, &gyro, &temp);
-        prevMagTheta = -atan2(mag.magnetic.y, mag.magnetic.x);
         float integral = 0;
         float derivative = 0;
         float integralTheta = 0;
         float derivativeTheta = 0;
         float prevErr;
         float prevThetaErr;
-        prevTimeHeading = 0;
 
         int prevTime = micros();
         int currentTime;
