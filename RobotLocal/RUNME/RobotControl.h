@@ -1,3 +1,8 @@
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_LSM9DS0.h>
+#include <math.h>
 // Pin definitions
 #define DIRR 7  // Direction control for motor B
 #define DIRL 8  // Direction control for motor A
@@ -9,6 +14,7 @@
 unsigned int leftEncoderTicks = 0;
 unsigned int rightEncoderTicks = 0;
 double pi = M_PI;
+Adafruit_LSM9DS0 lsm = Adafruit_LSM9DS0();
 // Interrupts for encoders
 void incrementLeftEncoder()
 {
@@ -27,6 +33,33 @@ void clearRightEncoder()
 {
     rightEncoderTicks = 0;
 }
+
+void setupSensor(void)
+{
+    if (!lsm.begin())
+    {
+        /* There was a problem detecting the LSM9DS0 ... check your connections */
+        while (1)
+            ;
+    }
+    // 1.) Set the accelerometer range
+    lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_2G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_4G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_6G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_8G);
+    // lsm.setupAccel(lsm.LSM9DS0_ACCELRANGE_16G);
+
+    // 2.) Set the magnetometer sensitivity
+    lsm.setupMag(lsm.LSM9DS0_MAGGAIN_2GAUSS);
+    // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_4GAUSS);
+    // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_8GAUSS);
+    // lsm.setupMag(lsm.LSM9DS0_MAGGAIN_12GAUSS);
+
+    // 3.) Setup the gyroscope
+    lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_245DPS);
+    // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_500DPS);
+    // lsm.setupGyro(lsm.LSM9DS0_GYROSCALE_2000DPS);
+}
 // Robot class for controlling the robot
 class Robot
 {
@@ -34,7 +67,7 @@ public:
     // radius of the wheels
     float r = 0.034;
     // radius from the centre to the wheel
-    float R = 0.079;
+    float R = 0.082;
     // position of the robot on the grid
     float x, y, theta;
     // direction of each wheel, 1 is forward, 0 is backward
@@ -42,6 +75,7 @@ public:
     // encoder ticks for each wheel at last update (used for calculating distance)
     int prevLeftEncoderTicks = 0;
     int prevRightEncoderTicks = 0;
+    float prevMagTheta;
     // Linear velocity gains
     float Kp = 1.5;
     float Ki = 0.005;
@@ -112,10 +146,17 @@ public:
         float EncoderdTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 192 * r / R * 0.5;
         // distance traveled forward since last update assuming the angle traveled is constant at the previous angle plus half the angle change
         float EncoderdL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 + 2 * DirWR)) * pi / 192 * r * 0.5;
+        sensors_event_t accel, mag, gyro, temp;
+        lsm.getEvent(&accel, &mag, &gyro, &temp);
+        float magTheta = atan2(mag.magnetic.y, mag.magnetic.x);
+        float magDtheta = magTheta - prevMagTheta;
+        prevMagTheta = magTheta;
+        // adding a little bit of magnetometer angle for some stability it seems to be pretty accurate but not linear around a rotation
+        float dTheta = 0.97 * EncoderdTheta + 0.03 * magDtheta;
         // calculating the new position
-        float EncoderdX = EncoderdL * cos(theta + 0.5 * EncoderdTheta);
-        float EncoderdY = EncoderdL * sin(theta + 0.5 * EncoderdTheta);
-        theta += (EncoderdTheta);
+        float EncoderdX = EncoderdL * cos(theta + 0.5 * dTheta);
+        float EncoderdY = EncoderdL * sin(theta + 0.5 * dTheta);
+        theta += (dTheta);
         fixTheta();
         x += EncoderdX;
         y += EncoderdY;
@@ -138,6 +179,9 @@ public:
         // angle error
         float thetaErr = fixAngle(atan2(Y - y, X - x) - theta);
         // continues to drive while the absolute positional Error on position is greater than the tolerance of Err
+        sensors_event_t accel, mag, gyro, temp;
+        lsm.getEvent(&accel, &mag, &gyro, &temp);
+        prevMagTheta = atan2(mag.magnetic.y, mag.magnetic.x);
         while (err > Err)
         {
             // updates position, time, and error
