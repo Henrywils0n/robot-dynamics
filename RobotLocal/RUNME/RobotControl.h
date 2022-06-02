@@ -169,10 +169,6 @@ private:
     float R = 0.082;
     // direction of each wheel, 1 is forward, 0 is backward
     byte DirWL, DirWR;
-    // encoder ticks for each wheel at last update (used for calculating distance)
-    int prevLeftEncoderTicks = 0;
-    int prevRightEncoderTicks = 0;
-    float prevMagTheta;
     // Linear velocity gains
     float Kp = 1.5;
     float Ki = 0.005;
