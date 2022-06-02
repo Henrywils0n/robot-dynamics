@@ -221,7 +221,7 @@ private:
     }
 
     // sets up the motor controller
-    void setupArdumoto(
+    void setupArdumoto()
     {
         // All pins should be setup as outputs:
         pinMode(PWML, OUTPUT);
