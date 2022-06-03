@@ -1,35 +1,32 @@
-# importing libraries
-import cv2
 import numpy as np
+import cv2
 
-# Create a VideoCapture object and read from input file
+
+def drawBox(img, bbox):
+    x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+    cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+
 cap = cv2.VideoCapture(0)
-
-# Check if camera opened successfully
-if (cap.isOpened() == False):
-    print("Error opening video  file")
-
-# Read until video is completed
-while(cap.isOpened()):
-
-    # Capture frame-by-frame
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+ret, frame = cap.read()
+tracker = cv2.TrackerCSRT_create()
+bbox = cv2.selectROI("frame", frame, False)
+tracker.init(frame, bbox)
+while ret == True:
+    timer = cv2.getTickCount()
     ret, frame = cap.read()
-    if ret == True:
-
-        # Display the resulting frame
-        cv2.imshow('Frame', frame)
-
-        # Press Q on keyboard to  exit
-        if cv2.waitKey(25) & 0xFF == ord('q'):
-            break
-
-    # Break the loop
+    sucsess, bbox = tracker.update(frame)
+    if sucsess:
+        drawBox(frame, bbox)
     else:
+        cv2.putText(frame, "Tracking failure detected", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+    fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
+    cv2.putText(frame, "FPS: %f" % fps, (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+    cv2.imshow("frame", frame)
+    key = cv2.waitKey(1)
+    if key == ord('q'):
         break
-
-# When everything done, release
-# the video capture object
 cap.release()
-
-# Closes all the frames
 cv2.destroyAllWindows()
