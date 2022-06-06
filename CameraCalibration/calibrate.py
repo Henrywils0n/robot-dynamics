@@ -26,8 +26,8 @@ for fname in images:
         imgpoints.append(corners)
         # Draw and display the corners
         cv2.drawChessboardCorners(img, (7, 4), corners2, ret)
-        cv2.imshow('img', img)
-        cv2.waitKey(500)
+        #cv2.imshow('img', img)
+        # cv2.waitKey(500)
 cv2.destroyAllWindows()
 print(goodImages)
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
@@ -43,3 +43,6 @@ dst = cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
 cv2.imwrite('calibresult.png', dst)
+# write the camera matrixs and distortion coefficients to file
+np.savez('calibration.npz', mtx=mtx, dist=dist, newcameramtx=newcameramtx, roi=roi)
+print("Calibration done")
