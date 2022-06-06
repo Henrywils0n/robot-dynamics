@@ -48,6 +48,8 @@ print(corners[0].reshape(4, 2))
 rvecs, tvecs, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[0], 0.114, mtx, dist)
 print(rvecs)
 print(tvecs)
+print(markerPoints)
+cv2.aruco.drawAxis(image, mtx, dist, rvecs, tvecs, 3)
 # verify *at least* one ArUco marker was detected
 if len(corners) > 0:
     # flatten the ArUco IDs list
