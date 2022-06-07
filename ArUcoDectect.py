@@ -8,15 +8,15 @@ import numpy as np
 npfile = np.load("calibration.npz")
 mtx = npfile["mtx"]
 dist = npfile["dist"]
-iName = "test6.jpg"
+iName = "test1.jpg"
 type = "DICT_4X4_1000"
-
+'''
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 ret, image = cap.read()
-
-#image = cv2.imread(iName)
+'''
+image = cv2.imread(iName)
 # define names of each possible ArUco tag OpenCV supports
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
