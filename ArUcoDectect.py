@@ -7,7 +7,7 @@ import numpy as np
 npfile = np.load("calibration.npz")
 mtx = npfile["mtx"]
 dist = npfile["dist"]
-iName = "test3.jpg"
+iName = "test4.jpg"
 type = "DICT_4X4_1000"
 # define names of each possible ArUco tag OpenCV supports
 ARUCO_DICT = {
@@ -44,12 +44,9 @@ arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[type])
 arucoParams = cv2.aruco.DetectorParameters_create()
 (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
                                                    parameters=arucoParams)
-print(corners[0].reshape(4, 2))
-rvecs, tvecs, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[0], 0.114, mtx, dist)
-print(rvecs)
-print(tvecs)
-print(markerPoints)
-cv2.aruco.drawAxis(image, mtx, dist, rvecs, tvecs, 3)
+
+rvecs1, tvecs1, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[0], 0.114, mtx, dist)
+
 # verify *at least* one ArUco marker was detected
 if len(corners) > 0:
     # flatten the ArUco IDs list
@@ -81,6 +78,6 @@ if len(corners) > 0:
                     0.5, (0, 255, 0), 2)
 
         # show the output image
-
+    #cv2.aruco.drawAxis(image, mtx, dist, rvecs1, tvecs1, 3)
     cv2.imshow("Image", image)
     cv2.waitKey(0)
