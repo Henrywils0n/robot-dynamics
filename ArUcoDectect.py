@@ -92,4 +92,6 @@ if len(corners) > 0:
         # show the output image
     #cv2.aruco.drawAxis(image, mtx, dist, rvecs1, tvecs1, 3)
     cv2.imshow("Image", image)
+    # save the image
+    cv2.imwrite("output.png", image)
     cv2.waitKey(0)
