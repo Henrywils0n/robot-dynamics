@@ -81,13 +81,15 @@ class Tracker:
                 cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         for i in range(len(ids)):
             self.Corners[ids[i]] = corners[i]
-        originR, originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
-        rodrigues = cv2.Rodrigues(originR[0][0])[0]
-        self.pos[0] = [0, 0, 0, np.pi/2]
-        for i in range(1, NUMMARKERS):
-            rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[self.IDS[i]], self.markerWidth, self.mtx, self.dist)
-            position = np.matmul(rodrigues, tvec[0][0]-originT[0][0])
-            Rod = cv2.Rodrigues(rvec[0][0])[0]
-            heading = cv2.Rodrigues(np.matmul(Rod, rodrigues))[0][2]
-            self.pos[i] = [position[0], position[1], position[2], self.fixAngle(self.pos[0][3]+heading[2])]
+        if self.Corners[10] != None:
+            originR, originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
+            rodrigues = cv2.Rodrigues(originR[0][0])[0]
+            self.pos[0] = [0, 0, 0, np.pi/2]
+            for i in range(1, NUMMARKERS):
+                if self.Corners[i] != None:
+                    rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[self.IDS[i]], self.markerWidth, self.mtx, self.dist)
+                    position = np.matmul(rodrigues, tvec[0][0]-originT[0][0])
+                    Rod = cv2.Rodrigues(rvec[0][0])[0]
+                    heading = cv2.Rodrigues(np.matmul(Rod, rodrigues))[0][2]
+                    self.pos[i] = [position[0], position[1], position[2], self.fixAngle(self.pos[0][3]+heading[2])]
         return frame
