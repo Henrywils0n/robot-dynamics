@@ -1,13 +1,18 @@
 
+from matplotlib import image
 import imutils
 import cv2
 import sys
 import math
 import numpy as np
 npfile = np.load("calibration.npz")
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+ret, image = cap.read()
 mtx = npfile["mtx"]
 dist = npfile["dist"]
-iName = "test4.jpg"
+iName = "test6.jpg"
 type = "DICT_4X4_1000"
 # define names of each possible ArUco tag OpenCV supports
 ARUCO_DICT = {
@@ -35,7 +40,7 @@ ARUCO_DICT = {
 }
 
 # load the input image from disk and resize it
-image = cv2.imread(iName)
+#image = cv2.imread(iName)
 # verify that the supplied ArUCo tag exists and is supported by
 # OpenCV
 # load the ArUCo dictionary, grab the ArUCo parameters, and detect
@@ -45,8 +50,12 @@ arucoParams = cv2.aruco.DetectorParameters_create()
 (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
                                                    parameters=arucoParams)
 
-rvecs1, tvecs1, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[0], 0.114, mtx, dist)
-
+rvecs1, tvecs1, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[0], 0.115, mtx, dist)
+rvecs2, tvecs2, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[1], 0.115, mtx, dist)
+dist12 = tvecs2[0][0] - tvecs1[0][0]
+print(dist12)
+dist12 = cv2.norm(dist12)
+print(dist12)
 # verify *at least* one ArUco marker was detected
 if len(corners) > 0:
     # flatten the ArUco IDs list
