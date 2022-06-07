@@ -32,17 +32,4 @@ cv2.destroyAllWindows()
 print(goodImages)
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 print("Camera matrix: \n", mtx)
-img = cv2.imread('WIN_20220606_13_50_06_Pro.jpg')
-h,  w = img.shape[:2]
-newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
-print("newcameramtx:\n ", newcameramtx)
-# undistort
-mapx, mapy = cv2.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), 5)
-dst = cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
-# crop the image
-x, y, w, h = roi
-dst = dst[y:y+h, x:x+w]
-cv2.imwrite('calibresult.png', dst)
-# write the camera matrixs and distortion coefficients to file
-np.savez('calibration.npz', mtx=mtx, dist=dist, newcameramtx=newcameramtx, roi=roi)
-print("Calibration done")
+np.savez('calibration.npz', mtx=mtx, dist=dist)

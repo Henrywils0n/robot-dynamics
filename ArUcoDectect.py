@@ -10,13 +10,13 @@ mtx = npfile["mtx"]
 dist = npfile["dist"]
 iName = "test6.jpg"
 type = "DICT_4X4_1000"
-"""
+
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 ret, image = cap.read()
-"""
-image = cv2.imread(iName)
+
+#image = cv2.imread(iName)
 # define names of each possible ArUco tag OpenCV supports
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -53,12 +53,22 @@ arucoParams = cv2.aruco.DetectorParameters_create()
 (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
                                                    parameters=arucoParams)
 
-rvecs1, tvecs1, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[0], 0.115, mtx, dist)
-rvecs2, tvecs2, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[1], 0.115, mtx, dist)
-dist12 = tvecs2[0][0] - tvecs1[0][0]
-print(dist12)
-dist12 = cv2.norm(dist12)
-print(dist12)
+
+# add axis to id 1
+if ids[0] == 1:
+    i = 0
+    j = 1
+else:
+    i = 1
+    j = 0
+rvecs1, tvecs1, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.114, mtx, dist)
+rvecs2, tvecs2, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[j], 0.114, mtx, dist)
+cv2.aruco.drawAxis(image, mtx, dist, rvecs1, tvecs1, 3)
+rotationvec = rvecs1[0][0]
+rot1 = cv2.Rodrigues(rotationvec)[0]
+print(rot1)
+pos2 = np.matmul(rot1, tvecs2[0][0] - tvecs1[0][0])
+print(pos2)
 # verify *at least* one ArUco marker was detected
 if len(corners) > 0:
     # flatten the ArUco IDs list
@@ -90,7 +100,7 @@ if len(corners) > 0:
                     0.5, (0, 255, 0), 2)
 
         # show the output image
-    #cv2.aruco.drawAxis(image, mtx, dist, rvecs1, tvecs1, 3)
+
     cv2.imshow("Image", image)
     # save the image
     cv2.imwrite("output.png", image)
