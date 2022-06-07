@@ -1,5 +1,4 @@
 
-from matplotlib import image
 import imutils
 import cv2
 import sys
@@ -8,7 +7,7 @@ import numpy as np
 npfile = np.load("calibration.npz")
 mtx = npfile["mtx"]
 dist = npfile["dist"]
-iName = "test1.jpg"
+iName = "rot3.jpg"
 type = "DICT_4X4_1000"
 '''
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
@@ -66,9 +65,12 @@ rvecs2, tvecs2, markerpos = cv2.aruco.estimatePoseSingleMarkers(corners[j], 0.11
 cv2.aruco.drawAxis(image, mtx, dist, rvecs1, tvecs1, 3)
 rotationvec = rvecs1[0][0]
 rot1 = cv2.Rodrigues(rotationvec)[0]
-print(rot1)
 pos2 = np.matmul(rot1, tvecs2[0][0] - tvecs1[0][0])
 print(pos2)
+rot2 = cv2.Rodrigues(rvecs2[0][0])[0]
+rot3 = cv2.Rodrigues(np.matmul(rot2, rot1))[0][2]
+print(rot3)
+
 # verify *at least* one ArUco marker was detected
 if len(corners) > 0:
     # flatten the ArUco IDs list
