@@ -10,8 +10,8 @@ class Tracker:
     npfile = np.load("calibration.npz")
     mtx = npfile["mtx"]
     dist = npfile["dist"]
-    Corners = dict.fromkeys([10, 21, 22, 23])
-    IDS = [10, 21, 22, 23]
+    Corners = {10: tuple(), 11: tuple(), 12: tuple(), 13: tuple()}
+    IDS = [10, 11, 12, 13]
     pos = np.zeros((NUMMARKERS, 4))
     ARUCO_DICT = {
         "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -42,7 +42,7 @@ class Tracker:
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
 
-    def fixAngle(angle):
+    def fixAngle(self, angle):
         # return an angle to -pi and pi
         while(angle > np.pi):
             angle -= 2*np.pi
@@ -50,46 +50,51 @@ class Tracker:
             angle += 2*np.pi
         return angle
 
-    def find_markerPos(self, frame):
+    def find_markerPos(self, frame, makeframe=True):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
-        if len(corners) > 0:
-            # flatten the ArUco IDs list
-            ids = ids.flatten()
-            # loop over the detected ArUCo corners
-            for (markerCorner, markerID) in zip(corners, ids):
-                # extract the marker corners (which are always returned in
-                # top-left, top-right, bottom-right, and bottom-left order)
-                corners = markerCorner.reshape((4, 2))
-                (topLeft, topRight, bottomRight, bottomLeft) = corners
-                # convert each of the (x, y)-coordinate pairs to integers
-                topRight = (int(topRight[0]), int(topRight[1]))
-                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-                topLeft = (int(topLeft[0]), int(topLeft[1]))
-                # draw the bounding box of the ArUCo detection
-                cv2.line(frame, topLeft, topRight, (0, 255, 0), 2)
-                cv2.line(frame, topRight, bottomRight, (0, 255, 0), 2)
-                cv2.line(frame, bottomRight, bottomLeft, (0, 255, 0), 2)
-                cv2.line(frame, bottomLeft, topLeft, (0, 255, 0), 2)
-                # compute and draw the center (x, y)-coordinates of the ArUco
-                # marker
-                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-                cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
-                # draw the ArUco marker ID on the image
-                cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        ids.flatten()
         for i in range(len(ids)):
-            self.Corners[ids[i]] = corners[i]
-        if self.Corners[10] != None:
+            self.Corners[ids[i][0]] = corners[i]
+        if len(self.Corners[10]) != 0:
             originR, originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
             rodrigues = cv2.Rodrigues(originR[0][0])[0]
             self.pos[0] = [0, 0, 0, np.pi/2]
             for i in range(1, NUMMARKERS):
-                if self.Corners[i] != None:
+                if len(self.Corners[10+i]) != 0:
                     rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[self.IDS[i]], self.markerWidth, self.mtx, self.dist)
                     position = np.matmul(rodrigues, tvec[0][0]-originT[0][0])
                     Rod = cv2.Rodrigues(rvec[0][0])[0]
-                    heading = cv2.Rodrigues(np.matmul(Rod, rodrigues))[0][2]
-                    self.pos[i] = [position[0], position[1], position[2], self.fixAngle(self.pos[0][3]+heading[2])]
+                    heading = cv2.Rodrigues(np.matmul(Rod, rodrigues))[0][2] + self.pos[0][3]
+                    self.pos[i] = [position[0], position[1], position[2], self.fixAngle(heading)]
+        if makeframe:
+            # loop over the detected ArUCo corners
+            keys = self.Corners.keys()
+            values = self.Corners.values()
+            for (markerID, markerCorner) in zip(keys, values):
+                if(len(markerCorner) != 0):
+                    # extract the marker corners (which are always returned in
+                    # top-left, top-right, bottom-right, and bottom-left order)
+                    corners = markerCorner.reshape((4, 2))
+                    (topLeft, topRight, bottomRight, bottomLeft) = corners
+                    # convert each of the (x, y)-coordinate pairs to integers
+                    topRight = (int(topRight[0]), int(topRight[1]))
+                    bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+                    bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+                    topLeft = (int(topLeft[0]), int(topLeft[1]))
+                    # draw the bounding box of the ArUCo detection
+                    cv2.line(frame, topLeft, topRight, (0, 255, 0), 2)
+                    cv2.line(frame, topRight, bottomRight, (0, 255, 0), 2)
+                    cv2.line(frame, bottomRight, bottomLeft, (0, 255, 0), 2)
+                    cv2.line(frame, bottomLeft, topLeft, (0, 255, 0), 2)
+                    # compute and draw the center (x, y)-coordinates of the ArUco
+                    # marker
+                    cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+                    cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+                    cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
+                    # draw the ArUco marker ID on the image
+                    cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    i = markerID-10
+                    # add position to the frame
+                    cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][2], '.3f') + ", " + format(self.pos[i][3], '.3f')+")", (topLeft[0], topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         return frame
