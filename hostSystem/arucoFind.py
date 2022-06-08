@@ -54,9 +54,10 @@ class Tracker:
     def find_markerPos(self, frame, makeframe=True):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
-        ids.flatten()
-        for i in range(len(ids)):
-            self.Corners[ids[i][0]] = corners[i]
+        if len(corners) > 0:
+            ids.flatten()
+            for i in range(len(ids)):
+                self.Corners[ids[i][0]] = corners[i]
         if len(self.Corners[10]) != 0:
 
             if self.numFrames == 0:
@@ -101,6 +102,8 @@ class Tracker:
                     # draw the ArUco marker ID on the image
                     cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                     i = markerID-10
+                    if i > 4 or i < 0:
+                        continue
                     # add position to the frame
                     cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][2], '.3f') + ", " + format(self.pos[i][3], '.3f')+")", (topLeft[0], topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         return frame

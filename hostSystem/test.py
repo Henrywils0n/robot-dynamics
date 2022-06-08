@@ -8,6 +8,7 @@ focus = 0  # min: 0, max: 255, increment:5
 cap.set(28, focus)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cap.set(cv2.CAP_PROP_FPS, 30)
 tracker = Tracker(marker_width=0.114, aruco_type="DICT_4X4_1000")
 # read the cap frame by frame and track then display the processed frame
 
