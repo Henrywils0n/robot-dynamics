@@ -1,4 +1,5 @@
 // to use paste the function into the robot class to run the test script// function to just run the motor full out and calculate the angular velocity
+//these might not work with the current implementation but the basic ideas for the calibration are there
 void calibrateAngularV()
 {
     digitalWrite(DIRR, 1);

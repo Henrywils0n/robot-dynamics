@@ -3,17 +3,23 @@ import cv2
 import sys
 import numpy as np
 
-NUMMARKERS = 4
-
 
 class Tracker:
-    npfile = np.load("calibration.npz")
+    # importing the camera matrix and distortion coefficients
+    # if the file path is working get rid of the folder or add a non relative path
+    npfile = np.load("hostSystem/calibration.npz")
     mtx = npfile["mtx"]
     dist = npfile["dist"]
+    # declaring the dictionary that will store the corners of the markers at a specific id
+    # marker 10 is the origin and then each agent is id 10 + agent number
     Corners = {10: tuple(), 11: tuple(), 12: tuple(), 13: tuple()}
-    IDS = [10, 11, 12, 13]
+    NUMMARKERS = 4
+    # positions of each marker
     pos = np.zeros((NUMMARKERS, 4))
-    numFrames = 0
+    pos[0] = [0, 0, 0, np.pi/2]
+    # bool used to only determine the position of the origin once to eliminate a bit of noise
+    originFound = False
+    # dictionary of aruco types
     ARUCO_DICT = {
         "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
         "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
@@ -37,6 +43,7 @@ class Tracker:
         "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
         "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
     }
+    # constructor that takes the marker width and the aruco type
 
     def __init__(self, marker_width, aruco_type):
         self.markerWidth = marker_width
@@ -52,30 +59,43 @@ class Tracker:
         return angle
 
     def find_markerPos(self, frame, makeframe=True):
+        # accepts a frame and locates markers and updates their positions and draws their position and info onto the frame
+        # converts to gray scale and finds the aruco markers
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
+        # ads the corners to the dictionary if they are detected
         if len(corners) > 0:
             ids.flatten()
             for i in range(len(ids)):
                 self.Corners[ids[i][0]] = corners[i]
-        if len(self.Corners[10]) != 0:
-
-            if self.numFrames == 0:
+        # only calculates position if the origin is found. Backup condition if the origin id has found markers because the origin will be marked as found inside the loop (second condition isn't checked if first condition is true)
+        if self.originFound or len(self.Corners[10]) != 0:
+            # locates the position of the origin marker only once to eliminate a bit of noise (if camera is not rigid and it moves this should be changed)
+            if not self.originFound:
+                # gets the rotation and translation vector of the origin marker
                 self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
+                # calculates rotation matrix from the rotation vector
                 self.rodrigues = cv2.Rodrigues(self.originR[0][0])[0]
-            # draw axis on the marker
-            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
-            self.pos[0] = [0, 0, 0, np.pi/2]
-            for i in range(1, NUMMARKERS):
+                self.originFound = True
+            # calculates position of all other markers
+            for i in range(1, self.NUMMARKERS):
+                # checks if there is a marker found at the specific id
                 if len(self.Corners[10+i]) != 0:
-                    rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[self.IDS[i]], self.markerWidth, self.mtx, self.dist)
+                    # finds marker position in the camera reference frame
+                    rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[i+10], self.markerWidth, self.mtx, self.dist)
+                    # finds the difference in position between the origin and the marker and rotates it to the origin reference frame
                     position = np.matmul(self.rodrigues, tvec[0][0]-self.originT[0][0])
+                    # rotation matrix of the marker
                     Rod = cv2.Rodrigues(rvec[0][0])[0]
+                    # multiply the rotation matrix of the marker with the rotation matrix of the origin and convert it back to a rotation vector. R_Z is the heading and the heading of the origin marker is added to the heading
                     heading = cv2.Rodrigues(np.matmul(Rod, self.rodrigues))[0][2] + self.pos[0][3]
+                    # updates the position of the marker
                     self.pos[i] = [position[0], position[1], position[2], self.fixAngle(heading)]
-            self.numFrames += 1
         if makeframe:
-            # loop over the detected ArUCo corners
+            if self.originFound:
+                # draws the axis on the origin marker
+                cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
+            # loop over the detected ArUCo corners and draws the outlines of the markers
             keys = self.Corners.keys()
             values = self.Corners.values()
             for (markerID, markerCorner) in zip(keys, values):
@@ -99,11 +119,13 @@ class Tracker:
                     cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                     cY = int((topLeft[1] + bottomRight[1]) / 2.0)
                     cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
+
                     # draw the ArUco marker ID on the image
                     cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                     i = markerID-10
                     if i > 4 or i < 0:
                         continue
                     # add position to the frame
-                    cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][2], '.3f') + ", " + format(self.pos[i][3], '.3f')+")", (topLeft[0], topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][2], '.3f') + ", " + format(self.pos[i][3], '.3f')+")", (topLeft[0] - 40, topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
         return frame
