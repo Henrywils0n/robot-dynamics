@@ -13,6 +13,7 @@ class Tracker:
     Corners = {10: tuple(), 11: tuple(), 12: tuple(), 13: tuple()}
     IDS = [10, 11, 12, 13]
     pos = np.zeros((NUMMARKERS, 4))
+    numFrames = 0
     ARUCO_DICT = {
         "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
         "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
@@ -57,16 +58,21 @@ class Tracker:
         for i in range(len(ids)):
             self.Corners[ids[i][0]] = corners[i]
         if len(self.Corners[10]) != 0:
-            originR, originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
-            rodrigues = cv2.Rodrigues(originR[0][0])[0]
+
+            if self.numFrames == 0:
+                self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
+                self.rodrigues = cv2.Rodrigues(self.originR[0][0])[0]
+            # draw axis on the marker
+            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
             self.pos[0] = [0, 0, 0, np.pi/2]
             for i in range(1, NUMMARKERS):
                 if len(self.Corners[10+i]) != 0:
                     rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[self.IDS[i]], self.markerWidth, self.mtx, self.dist)
-                    position = np.matmul(rodrigues, tvec[0][0]-originT[0][0])
+                    position = np.matmul(self.rodrigues, tvec[0][0]-self.originT[0][0])
                     Rod = cv2.Rodrigues(rvec[0][0])[0]
-                    heading = cv2.Rodrigues(np.matmul(Rod, rodrigues))[0][2] + self.pos[0][3]
+                    heading = cv2.Rodrigues(np.matmul(Rod, self.rodrigues))[0][2] + self.pos[0][3]
                     self.pos[i] = [position[0], position[1], position[2], self.fixAngle(heading)]
+            self.numFrames += 1
         if makeframe:
             # loop over the detected ArUCo corners
             keys = self.Corners.keys()
