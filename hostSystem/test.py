@@ -13,14 +13,16 @@ cap.set(cv2.CAP_PROP_FPS, 30)
 # declares the aruco tracker
 tracker = Tracker(marker_width=0.114, aruco_type="DICT_4X4_1000")
 # reads the cap frame by frame and track then display the processed frame
+makeframe = True
 while True:
     ret, frame = cap.read()
     if ret:
-        rederedFrame = tracker.find_markerPos(frame)
+        rederedFrame = tracker.find_markerPos(frame, makeframe)
         # add frame rate to the rendered frame
-        cv2.imshow("frame", rederedFrame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        if makeframe:
+            cv2.imshow("frame", rederedFrame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 # release the camera
 cap.release()
 cv2.destroyAllWindows()
