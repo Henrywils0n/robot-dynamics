@@ -16,8 +16,8 @@ class Tracker:
     Corners = {10: tuple(), 11: tuple(), 12: tuple(), 13: tuple()}
     NUMMARKERS = 4
     # positions of each marker
-    pos = np.zeros((NUMMARKERS, 4))
-    pos[0] = [0, 0, 0, np.pi/2]
+    pos = np.zeros((NUMMARKERS, 3))
+    pos[0] = [0, 0, np.pi/2]
     # bool used to only determine the position of the origin once to eliminate a bit of noise
     originFound = False
     # dictionary of aruco types
@@ -92,7 +92,7 @@ class Tracker:
                     # multiply the rotation matrix of the marker with the rotation matrix of the origin and convert it back to a rotation vector. R_Z is the heading and the heading of the origin marker is added to the heading
                     heading = cv2.Rodrigues(np.matmul(Rod, self.rodrigues))[0][2] + self.pos[0][3]
                     # updates the position of the marker
-                    self.pos[i] = [position[0], position[1], position[2], self.fixAngle(heading)]
+                    self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
         if makeframe:
             if self.originFound:
                 # draws the axis on the origin marker
@@ -128,7 +128,7 @@ class Tracker:
                     if i > 4 or i < 0:
                         continue
                     # add position to the frame
-                    cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][2], '.3f') + ", " + format(self.pos[i][3], '.3f')+")", (topLeft[0] - 40, topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][3], '.3f')+")", (topLeft[0] - 40, topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
             self.endTime = time.time()
             dt = self.endTime - self.startTime
