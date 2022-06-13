@@ -2,11 +2,14 @@ import cv2
 from tracker import Tracker
 import requests
 import pandas as pd
+import json
 from webcamvideostream import WebcamVideoStream
 import time
 targets = False
 filename = 'testData.xlsx'
 address = 'http://192.168.0.181:3000/'
+
+
 # puts the data onto the server
 if targets:
     df = pd.read_excel(filename)
@@ -26,10 +29,9 @@ while True:
     frame = vs.frame
     if ret:
         rederedFrame = tracker.find_markerPos(frame, makeframe)
-        for i in range(1, 4):
-            # puts the positions onto the server for each agent
-            data = {'id': i, 'position': tracker.pos[i]}
-            r = requests.put(address + 'agents/' + str(i), data=data)
+        # puts the positions onto the server for each agent
+        json_string = json.dumps([{'id': 1, 'position': tracker.pos[1].tolist()}, {'id': 2, 'position': tracker.pos[2].tolist()}, {'id': 3, 'position': tracker.pos[3].tolist()}])
+        r = requests.put(address + 'agents/', json=json_string)
         # add frame rate to the rendered frame
         if makeframe:
             cv2.imshow("frame", rederedFrame)
