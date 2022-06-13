@@ -2,6 +2,10 @@ import cv2
 import sys
 import numpy as np
 import datetime
+import asyncio
+import aiohttp
+from ast import Pass
+from threading import Thread
 
 
 class Tracker:
@@ -45,11 +49,12 @@ class Tracker:
     }
     # constructor that takes the marker width and the aruco type
 
-    def __init__(self, marker_width, aruco_type):
+    def __init__(self, marker_width, aruco_type, address):
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
         self.startTime = datetime.datetime.now()
+        self.address = address
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
@@ -136,3 +141,33 @@ class Tracker:
                 cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         return frame
+
+    # threaded function that puts the position data to the server
+    def get_tasks(session, self):
+        tasks = []
+        for i in range(0, 3):
+            tasks.append(session.put(self.address + 'agents/' + str(i+1), data=self.pos[i]))
+        return tasks
+
+    async def put_data(self):
+        while(True):
+            if self.Stop:
+                return
+            # put the data in r1, r2, and r3 into the server
+            async with aiohttp.ClientSession() as session:
+                tasks = self.get_tasks(session)
+                try:
+                    await asyncio.gather(*tasks)
+                except:
+                    Pass
+
+    def startPutThread(self):
+        # start the thread that puts the data to the server
+        t = Thread(target=self.put_data)
+        t.daemon = True
+        self.Stop = False
+        t.start()
+
+    def stopPutThread(self):
+        # stop the thread that puts the data to the server
+        self.Stop = True

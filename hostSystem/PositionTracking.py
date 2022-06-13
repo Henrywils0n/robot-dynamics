@@ -7,29 +7,13 @@ import requests
 import pandas as pd
 import asyncio
 import numpy as np
-import aiohttp
+
 targets = False
 filename = 'testData.xlsx'
 address = 'http://192.168.0.181:3000/'
 
 
-def get_tasks(session, data):
-    tasks = []
-    for i in range(0, 3):
-        tasks.append(session.put(address + 'agents/' + str(i+1), data=data[i]))
-    return tasks
-
-
-async def put_data(data):
-    # put the data in r1, r2, and r3 into the server
-    async with aiohttp.ClientSession() as session:
-        tasks = get_tasks(session, data)
-        try:
-            await asyncio.gather(*tasks)
-        except:
-            Pass
-
-        # puts the data onto the server
+# puts the data onto the server
 if targets:
     df = pd.read_excel(filename)
     for i in range(1, 4):
@@ -40,7 +24,8 @@ vs = WebcamVideoStream(src=0)
 vs.start()
 
 # declares the aruco tracker
-tracker = Tracker(marker_width=0.114, aruco_type="DICT_4X4_1000")
+tracker = Tracker(marker_width=0.114, aruco_type="DICT_4X4_1000", address=address)
+tracker.startPutThread()
 # reads the cap frame by frame and track then display the processed frame
 makeframe = True
 while True:
@@ -59,4 +44,5 @@ while True:
 # release the camera
 vs.stop()
 vs.stream.release()
+tracker.stopPutThread()
 cv2.destroyAllWindows()
