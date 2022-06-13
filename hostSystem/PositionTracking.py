@@ -2,7 +2,7 @@ import cv2
 from tracker import Tracker
 import requests
 import pandas as pd
-from imutils.video import WebcamVideoStream
+from webcamvideostream import WebcamVideoStream
 import time
 targets = False
 filename = 'testData.xlsx'
@@ -15,13 +15,6 @@ if targets:
         r = requests.put(address + 'targets/' + str(i), data=data)
 # open the camera and sets the resolution, frame rate, and focus
 vs = WebcamVideoStream(src=0)
-vs.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-vs.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-# lower focus focuses further away from the camera
-focus = 0  # min: 0, max: 255, increment:5
-vs.stream.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-vs.stream.set(28, focus)
-time.sleep(5)
 vs.start()
 
 # declares the aruco tracker
