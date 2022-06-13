@@ -4,12 +4,13 @@ import requests
 import pandas as pd
 targets = False
 filename = 'testData.xlsx'
+address = '192.168.0.181:3000'
 # puts the data onto the server
 if targets:
     df = pd.read_excel(filename)
     for i in range(1, 4):
         data = {'id': i, 't': df['t'].to_list(), 'x': df['x'+str(i)].to_list(), 'y': df['y'+str(i)].to_list()}
-        r = requests.put('http://localhost:3000/targets/' + str(i), data=data)
+        r = requests.put(address + 'targets/' + str(i), data=data)
 # open the camera and sets the resolution, frame rate, and focus
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
@@ -29,8 +30,8 @@ while True:
         rederedFrame = tracker.find_markerPos(frame, makeframe)
         for i in range(1, 4):
             # puts the positions onto the server for each agent
-            data = {'id': i, 'position': tracker.agentPos[i]}
-            r = requests.put('http://localhost:3000/agents/' + str(i), data=data)
+            data = {'id': i, 'position': tracker.pos[i]}
+            r = requests.put(address + 'agents/' + str(i), data=data)
         # add frame rate to the rendered frame
         if makeframe:
             cv2.imshow("frame", rederedFrame)
