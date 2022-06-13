@@ -1,3 +1,4 @@
+from ast import Pass
 from webcamvideostream import WebcamVideoStream
 import aiohttp
 import cv2
@@ -23,7 +24,10 @@ async def put_data(data):
     # put the data in r1, r2, and r3 into the server
     async with aiohttp.ClientSession() as session:
         tasks = get_tasks(session, data)
-        await asyncio.gather(*tasks)
+        try:
+            await asyncio.gather(*tasks)
+        except:
+            Pass
 
         # puts the data onto the server
 if targets:
