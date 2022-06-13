@@ -4,7 +4,6 @@ import requests
 import pandas as pd
 import json
 from webcamvideostream import WebcamVideoStream
-import time
 targets = False
 filename = 'testData.xlsx'
 address = 'http://192.168.0.181:3000/'
