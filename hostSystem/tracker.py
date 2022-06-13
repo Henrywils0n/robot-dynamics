@@ -143,31 +143,38 @@ class Tracker:
         return frame
 
     # threaded function that puts the position data to the server
-    def get_tasks(session, self):
+    def get_tasks(self, session, data):
         tasks = []
         for i in range(0, 3):
-            tasks.append(session.put(self.address + 'agents/' + str(i+1), data=self.pos[i]))
+            tasks.append(session.put(self.address + 'agents/' + str(i+1), data=data[i]))
         return tasks
 
-    async def put_data(self):
-        while(True):
-            if self.Stop:
-                return
-            # put the data in r1, r2, and r3 into the server
-            async with aiohttp.ClientSession() as session:
-                tasks = self.get_tasks(session)
-                try:
-                    await asyncio.gather(*tasks)
-                except:
-                    Pass
+    async def put_data(self, data):
+        # put the data in r1, r2, and r3 into the server
+        async with aiohttp.ClientSession() as session:
+            tasks = self.get_tasks(session, data)
+            try:
+                await asyncio.gather(*tasks)
+            except:
+                Pass
 
     def startPutThread(self):
         # start the thread that puts the data to the server
-        t = Thread(target=self.put_data)
-        t.daemon = True
         self.Stop = False
+        t = Thread(target=self.runPutThread)
+        t.daemon = True
         t.start()
+        return self
 
     def stopPutThread(self):
         # stop the thread that puts the data to the server
         self.Stop = True
+
+    def runPutThread(self):
+        while(True):
+            if self.Stop:
+                print("Stopping Put Thread")
+                return
+            else:
+                data = [{'id': 1, 'position': self.pos[0]}, {'id': 2, 'position': self.pos[1]}, {'id': 3, 'position': self.pos[2]}]
+                asyncio.run(self.put_data(data))

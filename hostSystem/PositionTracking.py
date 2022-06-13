@@ -1,11 +1,8 @@
-from ast import Pass
 from webcamvideostream import WebcamVideoStream
-import aiohttp
 import cv2
 from tracker import Tracker
 import requests
 import pandas as pd
-import asyncio
 import numpy as np
 
 targets = False
@@ -20,7 +17,7 @@ if targets:
         data = {'id': i, 't': df['t'].to_list(), 'x': df['x'+str(i)].to_list(), 'y': df['y'+str(i)].to_list()}
         r = requests.put(address + 'targets/' + str(i), data=data)
 # open the camera and sets the resolution, frame rate, and focus
-vs = WebcamVideoStream(src=0)
+vs = WebcamVideoStream(src=0).start()
 vs.start()
 
 # declares the aruco tracker
@@ -33,9 +30,6 @@ while True:
     frame = vs.frame
     if ret:
         rederedFrame = tracker.find_markerPos(frame, makeframe)
-        # puts the positions onto the server for each agent
-        data = [{'id': 1, 'position': tracker.pos[1].tolist()}, {'id': 2, 'position': tracker.pos[2].tolist()}, {'id': 3, 'position': tracker.pos[3].tolist()}]
-        asyncio.run(put_data(data))
         # add frame rate to the rendered frame
         if makeframe:
             cv2.imshow("frame", rederedFrame)
