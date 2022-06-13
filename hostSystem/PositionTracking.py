@@ -3,7 +3,6 @@ from tracker import Tracker
 import requests
 import pandas as pd
 from webcamvideostream import WebcamVideoStream
-import time
 targets = False
 filename = 'testData.xlsx'
 address = 'http://192.168.0.181:3000/'
@@ -26,10 +25,12 @@ while True:
     frame = vs.frame
     if ret:
         rederedFrame = tracker.find_markerPos(frame, makeframe)
+        """
         for i in range(1, 4):
             # puts the positions onto the server for each agent
             data = {'id': i, 'position': tracker.pos[i]}
             r = requests.put(address + 'agents/' + str(i), data=data)
+        """
         # add frame rate to the rendered frame
         if makeframe:
             cv2.imshow("frame", rederedFrame)

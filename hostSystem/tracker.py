@@ -1,7 +1,7 @@
 import cv2
 import sys
 import numpy as np
-import time
+import datetime
 
 
 class Tracker:
@@ -49,7 +49,7 @@ class Tracker:
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
-        self.startTime = time.time()
+        self.startTime = datetime.datetime.now()
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
@@ -129,8 +129,8 @@ class Tracker:
                     # add position to the frame
                     cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][2], '.3f')+")", (topLeft[0] - 40, topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-            self.endTime = time.time()
-            dt = self.endTime - self.startTime
+            self.endTime = datetime.datetime.now()
+            dt = (self.endTime - self.startTime).total_seconds()
             self.startTime = self.endTime
             if dt != 0:
                 cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
