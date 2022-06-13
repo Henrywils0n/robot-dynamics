@@ -1,3 +1,4 @@
+# this is a modified version of the original code from: imutils.video.WebcamVideoStream
 # import the necessary packages
 from threading import Thread
 import cv2
@@ -8,17 +9,16 @@ class WebcamVideoStream:
         # initialize the video camera stream and read the first frame
         # from the stream
         self.stream = cv2.VideoCapture(src, cv2.CAP_DSHOW)
-        (self.grabbed, self.frame) = self.stream.read()
         self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         # lower focus focuses further away from the camera
         focus = 0  # min: 0, max: 255, increment:5
         self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.stream.set(28, focus)
-        self.stream.set(cv2.CAP_PROP_FPS, fps)
+        (self.grabbed, self.frame) = self.stream.read()
+        #self.stream.set(cv2.CAP_PROP_FPS, fps)
         # initialize the thread name
         self.name = name
-
         # initialize the variable used to indicate if the thread should
         # be stopped
         self.stopped = False
