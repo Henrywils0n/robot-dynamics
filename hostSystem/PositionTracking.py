@@ -5,7 +5,7 @@ import pandas as pd
 from imutils import WebcamVideoStream
 targets = False
 filename = 'testData.xlsx'
-address = '192.168.0.181:3000'
+address = 'http://192.168.0.181:3000/'
 # puts the data onto the server
 if targets:
     df = pd.read_excel(filename)
