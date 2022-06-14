@@ -6,8 +6,7 @@ import cv2
 
 class WebcamVideoStream:
     def __init__(self, src=0, name="WebcamVideoStream", height=720, width=1280, fps=60, focus=0):
-        # initialize the video camera stream and read the first frame
-        # from the stream
+        # initialize the camera and properties
         self.stream = cv2.VideoCapture(src, cv2.CAP_DSHOW)
         self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, width)

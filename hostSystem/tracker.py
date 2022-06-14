@@ -97,6 +97,7 @@ class Tracker:
                     heading = cv2.Rodrigues(np.matmul(Rod, self.rodrigues))[0][2] + np.pi/2
                     # updates the position of the marker
                     self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
+        # draws the marker outlines, ids, and position onto the frame
         if makeframe:
             if self.originFound:
                 # draws the axis on the origin marker
@@ -128,26 +129,31 @@ class Tracker:
 
                     # draw the ArUco marker ID on the image
                     cv2.putText(frame, str(markerID), (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    # draw the position of the marker
                     i = markerID-10
+                    # if statement to eliminate error caused by marker with a different id being found
                     if i > 3 or i < 0:
                         continue
                     # add position to the frame
                     cv2.putText(frame, "(" + format(self.pos[i][0], '.3f') + ", " + format(self.pos[i][1], '.3f') + ", " + format(self.pos[i][2], '.3f')+")", (topLeft[0] - 40, topLeft[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
+            # calculating FPS and drawing it onto the frame
             self.endTime = datetime.datetime.now()
             dt = (self.endTime - self.startTime).total_seconds()
             self.startTime = self.endTime
+            # preventing division by zero error
             if dt != 0:
                 cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         return frame
 
-    # threaded function that puts the position data to the server
+    # generates task list of put requests for the asyc function
     def get_tasks(self, session, data):
         tasks = []
         for i in range(0, 3):
             tasks.append(session.put(self.address + 'agents/' + str(i+1), data=data[i]))
         return tasks
+
+    # async function that sends the data to the server
 
     async def put_data(self, data):
         # put the data in r1, r2, and r3 into the server
@@ -158,6 +164,8 @@ class Tracker:
             except:
                 Pass
 
+    # starts the thread for put requests
+
     def startPutThread(self):
         # start the thread that puts the data to the server
         self.Stop = False
@@ -166,9 +174,13 @@ class Tracker:
         t.start()
         return self
 
+    # ends the thread for put requests
+
     def stopPutThread(self):
         # stop the thread that puts the data to the server
         self.Stop = True
+
+    # calls the async function infinitely in a thread to constantly update the server
 
     def runPutThread(self):
         while(True):
