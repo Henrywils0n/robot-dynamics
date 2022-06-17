@@ -1,0 +1,81 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+#include <SoftwareSerial.h>
+
+const char *ssid = "Kelly 2.4";
+const char *password = "6134848186";
+
+SoftwareSerial ARD(2, 4);
+void getCommand()
+{
+  // Read the command from the Arduino
+  String command = ARD.readStringUntil('\n');
+  Serial.println(command);
+  // parse the command seperated by the command
+  String cmd = command.substring(0, command.indexOf(","));
+  String address = command.substring(command.indexOf(",") + 1);
+  // call GET if the command is GET
+  if (cmd == "GET")
+  {
+    GET(address);
+  }
+}
+void GET(String address)
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    WiFiClient client;
+    HTTPClient http;
+    http.begin(client, address);
+    int httpResponseCode = http.GET();
+
+    if (httpResponseCode > 0)
+    {
+      String payload = http.getString();
+      ARD.println(payload);
+    }
+    else
+    {
+      ARD.println("Err");
+    }
+    // Free resources
+    http.end();
+  }
+  else
+  {
+    connectWiFi();
+    GET(address);
+  }
+}
+void connectWiFi()
+{
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+}
+void setup()
+{
+  Serial.begin(115200);
+  ARD.begin(4800);
+
+  connectWiFi();
+}
+
+void loop()
+{
+  if (ARD.available())
+  {
+    getCommand();
+  }
+  else
+  {
+    Serial.println("NotAvailible");
+  }
+}
