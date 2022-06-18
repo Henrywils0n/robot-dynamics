@@ -188,5 +188,5 @@ class Tracker:
                 print("Stopping Put Thread")
                 return
             else:
-                data = [{'id': 1, 'position': self.pos[0]}, {'id': 2, 'position': self.pos[1]}, {'id': 3, 'position': self.pos[2]}]
+                data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
                 asyncio.run(self.put_data(data))
