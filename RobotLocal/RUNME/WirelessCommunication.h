@@ -27,7 +27,7 @@ StaticJsonDocument<200> GET(String Address)
 // updates the robots position with data from the json document position
 void localizePosition(Robot &robot, StaticJsonDocument<200> position)
 {
-    robot.x = position["position"][0];
-    robot.y = position["position"][1];
-    robot.theta = position["position"][2];
+    robot.x = position["position"][0].as<String>().toFloat();
+    robot.y = position["position"][1].as<String>().toFloat();
+    robot.theta = position["position"][2].as<String>().toFloat();
 }

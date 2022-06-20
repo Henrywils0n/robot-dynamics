@@ -15,8 +15,5 @@ void loop(void)
     robotA.moveTo(0, 1);
     position = GET(positionAddress);
     localizePosition(robotA, position);
-    robotA.moveTo(0.5, 0.5);
-    position = GET(positionAddress);
-    localizePosition(robotA, position);
     robotA.moveTo(0, 0);
 }
