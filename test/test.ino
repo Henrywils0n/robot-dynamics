@@ -1,20 +1,18 @@
-#include <SoftwareSerial.h>
 #include <ArduinoJson.h>
-SoftwareSerial ESPserial(12, 13); // RX | TX
 String address = "http://192.168.0.181:3000/agents/1";
+String addresses[] = {"http://192.168.0.181:3000/agents/1", "http://192.168.0.181:3000/agents/2", "http://192.168.0.181:3000/agents/3"};
 StaticJsonDocument<200> GET(String Address)
 {
 
-    ESPserial.println(Address);
+    Serial.println(Address);
     while (1)
     {
-        if (ESPserial.available())
+        if (Serial.available())
         {
             StaticJsonDocument<200> doc;
-            DeserializationError error = deserializeJson(doc, ESPserial);
+            DeserializationError error = deserializeJson(doc, Serial);
             if (error != DeserializationError::Ok)
             {
-                Serial.println("Deserialization failed");
             }
             else
             {
@@ -25,12 +23,16 @@ StaticJsonDocument<200> GET(String Address)
 }
 void setup()
 {
-    Serial.begin(19200);
-    ESPserial.begin(9600);
+    Serial.begin(115200);
 }
 
 void loop()
 {
-    String payload = GET(address);
-    parseJsonPosition(payload);
+    for (int i = 0; i < 3; i++)
+    {
+        int start = millis();
+        StaticJsonDocument<200> payload = GET(addresses[i]);
+        float position[] = {payload["position"][0], payload["position"][1], payload["position"][2]};
+        delay(2000);
+    }
 }

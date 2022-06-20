@@ -1,245 +1,0 @@
-*************************** START ****************************
-START TIME: 202206151528
-CONNECT BAUD: 115200
-set state: ESP_DL_SYNC
-serial port opened
------------
-baud:115200
-root baud:115200
--------------
-===============BAUD : 115200===============CALL DEVICE SYNC
-connecting...
-chip sync ok
-0x3ff00050: 902b0000
-0x3ff00054: 020012c3
-0x3ff00058: 6900b000
-0x3ff0005c: 00441793
-check_err_0: 0bcheck_err_1: 00check_err_2: 00check_err_3: 02check_err_4: 0b====================
-EFUSE NORMAL MODE
-====================
-=========================
-CRC IN MODE 1: 
-crc_calc_res: 105
-target crc val: 105
-=========================
-=========================
-CRC IN MODE 1:
-crc_calc_res: 43
-target crc val: 43
-=========================
-==================
-EFUSE LOG:
-======================
-    EFUSE LOG:
-    ---------------
-    REG0:902B0000
-    REG1:020012C3
-    REG2:6900b000
-    REG3:00441793
-    ----------------
-    ====================
-                                   EFUSE NORMAL MODE
-                                   ====================
-EFUSE CHECK PASS...48bit mac
------------------------
- 44 17 93 12 c3 90CUSTOM_ID: 06 90 00 00 00 02 B0 00 
-MAC AP : 46-17-93-12-C3-90
-MAC STA: 44-17-93-12-C3-90
-get mac res: 1
-get flash id : 0x0016405e
-manufacturer_id: 0x5e
-device_id: 0x4016
-
-Leaving...
-com closed
-Use time: 5 s
-Download result: PASS
-*************************** END ****************************
-
-*************************** START ****************************
-START TIME: 202206151533
-CONNECT BAUD: 115200
-set state: ESP_DL_SYNC
-serial port opened
------------
-baud:115200
-root baud:115200
--------------
-===============BAUD : 115200===============CALL DEVICE SYNC
-connecting...
-chip sync ok
-0x3ff00050: 902b0000
-0x3ff00054: 020012c3
-0x3ff00058: 6900b000
-0x3ff0005c: 00441793
-check_err_0: 0bcheck_err_1: 00check_err_2: 00check_err_3: 02check_err_4: 0b====================
-EFUSE NORMAL MODE
-====================
-=========================
-CRC IN MODE 1: 
-crc_calc_res: 105
-target crc val: 105
-=========================
-=========================
-CRC IN MODE 1:
-crc_calc_res: 43
-target crc val: 43
-=========================
-==================
-EFUSE LOG:
-======================
-    EFUSE LOG:
-    ---------------
-    REG0:902B0000
-    REG1:020012C3
-    REG2:6900b000
-    REG3:00441793
-    ----------------
-    ====================
-                                   EFUSE NORMAL MODE
-                                   ====================
-EFUSE CHECK PASS...48bit mac
------------------------
- 44 17 93 12 c3 90CUSTOM_ID: 06 90 00 00 00 02 B0 00 
-MAC AP : 46-17-93-12-C3-90
-MAC STA: 44-17-93-12-C3-90
-get mac res: 1
-get flash id : 0x0016405e
-manufacturer_id: 0x5e
-device_id: 0x4016
-Wrote 4080 bytes (2936 compressed) at 0x00000000 in 0.4 seconds (effective 91.6 kbit/s)...
-Hash of data verified.Wrote 413556 bytes (296998 compressed) at 0x00001000 in 27.1 seconds (effective 122.0 kbit/s)...
-Hash of data verified.Wrote 128 bytes (75 compressed) at 0x000fc000 in 0.1 seconds (effective 9.7 kbit/s)...
-Hash of data verified.Wrote 4096 bytes (26 compressed) at 0x000fe000 in 0.1 seconds (effective 326.2 kbit/s)...
-Hash of data verified.
-Leaving...
-com closed
-Use time: 32 s
-Download result: PASS
-*************************** END ****************************
-
-*************************** START ****************************
-START TIME: 202206151536
-CONNECT BAUD: 115200
-set state: ESP_DL_SYNC
-serial port opened
------------
-baud:115200
-root baud:115200
--------------
-===============BAUD : 115200===============CALL DEVICE SYNC
-connecting...
-chip sync ok
-0x3ff00050: 902b0000
-0x3ff00054: 020012c3
-0x3ff00058: 6900b000
-0x3ff0005c: 00441793
-check_err_0: 0bcheck_err_1: 00check_err_2: 00check_err_3: 02check_err_4: 0b====================
-EFUSE NORMAL MODE
-====================
-=========================
-CRC IN MODE 1: 
-crc_calc_res: 105
-target crc val: 105
-=========================
-=========================
-CRC IN MODE 1:
-crc_calc_res: 43
-target crc val: 43
-=========================
-==================
-EFUSE LOG:
-======================
-    EFUSE LOG:
-    ---------------
-    REG0:902B0000
-    REG1:020012C3
-    REG2:6900b000
-    REG3:00441793
-    ----------------
-    ====================
-                                   EFUSE NORMAL MODE
-                                   ====================
-EFUSE CHECK PASS...48bit mac
------------------------
- 44 17 93 12 c3 90CUSTOM_ID: 06 90 00 00 00 02 B0 00 
-MAC AP : 46-17-93-12-C3-90
-MAC STA: 44-17-93-12-C3-90
-get mac res: 1
-get flash id : 0x0016405e
-manufacturer_id: 0x5e
-device_id: 0x4016
-Wrote 4080 bytes (2936 compressed) at 0x00000000 in 0.4 seconds (effective 91.3 kbit/s)...
-Hash of data verified.Wrote 413556 bytes (296998 compressed) at 0x00001000 in 27.1 seconds (effective 122.0 kbit/s)...
-Hash of data verified.Wrote 128 bytes (75 compressed) at 0x000fc000 in 0.1 seconds (effective 9.4 kbit/s)...
-Hash of data verified.Wrote 4096 bytes (26 compressed) at 0x000fe000 in 0.1 seconds (effective 328.5 kbit/s)...
-Hash of data verified.
-Leaving...
-com closed
-Use time: 32 s
-Download result: PASS
-*************************** END ****************************
-
-*************************** START ****************************
-START TIME: 202206151538
-CONNECT BAUD: 115200
-set state: ESP_DL_SYNC
-serial port opened
------------
-baud:115200
-root baud:115200
--------------
-===============BAUD : 115200===============CALL DEVICE SYNC
-connecting...
-chip sync ok
-0x3ff00050: 902b0000
-0x3ff00054: 020012c3
-0x3ff00058: 6900b000
-0x3ff0005c: 00441793
-check_err_0: 0bcheck_err_1: 00check_err_2: 00check_err_3: 02check_err_4: 0b====================
-EFUSE NORMAL MODE
-====================
-=========================
-CRC IN MODE 1: 
-crc_calc_res: 105
-target crc val: 105
-=========================
-=========================
-CRC IN MODE 1:
-crc_calc_res: 43
-target crc val: 43
-=========================
-==================
-EFUSE LOG:
-======================
-    EFUSE LOG:
-    ---------------
-    REG0:902B0000
-    REG1:020012C3
-    REG2:6900b000
-    REG3:00441793
-    ----------------
-    ====================
-                                   EFUSE NORMAL MODE
-                                   ====================
-EFUSE CHECK PASS...48bit mac
------------------------
- 44 17 93 12 c3 90CUSTOM_ID: 06 90 00 00 00 02 B0 00 
-MAC AP : 46-17-93-12-C3-90
-MAC STA: 44-17-93-12-C3-90
-get mac res: 1
-get flash id : 0x0016405e
-manufacturer_id: 0x5e
-device_id: 0x4016
-Wrote 4080 bytes (2936 compressed) at 0x00000000 in 0.4 seconds (effective 91.4 kbit/s)...
-Hash of data verified.Wrote 413556 bytes (296998 compressed) at 0x00001000 in 27.1 seconds (effective 122.0 kbit/s)...
-Hash of data verified.Wrote 413556 bytes (297010 compressed) at 0x00081000 in 27.1 seconds (effective 122.0 kbit/s)...
-Hash of data verified.Wrote 128 bytes (75 compressed) at 0x000fc000 in 0.1 seconds (effective 9.9 kbit/s)...
-Hash of data verified.Wrote 4096 bytes (26 compressed) at 0x000fe000 in 0.1 seconds (effective 326.4 kbit/s)...
-Hash of data verified.
-Leaving...
-com closed
-Use time: 58 s
-Download result: PASS
-*************************** END ****************************
-

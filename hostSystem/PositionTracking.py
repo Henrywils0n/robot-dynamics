@@ -21,7 +21,7 @@ vs = WebcamVideoStream(src=0).start()
 vs.start()
 
 # declares the aruco tracker
-tracker = Tracker(marker_width=0.114, aruco_type="DICT_4X4_1000", address=address)
+tracker = Tracker(marker_width=0.1135, aruco_type="DICT_4X4_1000", address=address)
 tracker.startPutThread()
 # reads the cap frame by frame and track then display the processed frame
 makeframe = True

@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
+#include <ArduinoJson.h>
 
 const char *ssid = "Kelly 2.4";
 const char *password = "6134848186";
@@ -26,7 +27,7 @@ void GET(String address)
     payload.toCharArray(buff, payload.length());
     StaticJsonDocument<200> doc;
     DeserializationError error = deserializeJson(doc, buff);
-    SerializeJson(doc, Serial);
+    serializeJson(doc, Serial);
   }
   else
   {
@@ -35,7 +36,7 @@ void GET(String address)
 }
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   connectWiFi();
 }
 void loop()
