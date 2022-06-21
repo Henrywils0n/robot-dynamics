@@ -15,6 +15,7 @@ StaticJsonDocument<200> GET(String Address)
             if (error != DeserializationError::Ok)
             {
                 doc = GET(Address);
+                return doc;
             }
             else
             {
