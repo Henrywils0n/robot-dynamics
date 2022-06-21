@@ -71,7 +71,7 @@ class Tracker:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
         # ads the corners to the dictionary if they are detected
-        if ids != None:
+        if len(corners) > 0:
             diamondCorners, diamondIds = cv2.aruco.detectCharucoDiamond(gray, corners, self.squareWidth/self.markerWidth)
             if len(diamondCorners) > 0:
                 diamondIds.flatten()

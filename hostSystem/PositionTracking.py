@@ -24,12 +24,11 @@ vs.start()
 tracker = Tracker(marker_width=0.0325, square_width=0.054, aruco_type="DICT_4X4_1000", address=address)
 tracker.startPutThread()
 # reads the cap frame by frame and track then display the processed frame
-makeframe = True
 while True:
     ret = vs.grabbed
     frame = vs.frame
     if ret:
-        rederedFrame = tracker.find_markerPos(frame, makeframe)
+        rederedFrame = tracker.find_markerPos(frame)
         # add frame rate to the rendered frame
         if makeframe:
             cv2.imshow("frame", rederedFrame)
