@@ -87,7 +87,7 @@ class Tracker:
                 # calculates rotation matrix from the rotation vector
                 self.rodrigues = cv2.Rodrigues(self.originR[0][0])[0]
                 self.originFound = True
-                cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
+            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
             # calculates position of all other markers
             for i in range(1, self.NUMMARKERS):
                 # checks if there is a marker found at the specific id
