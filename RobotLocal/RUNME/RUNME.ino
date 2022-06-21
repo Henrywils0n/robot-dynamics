@@ -12,8 +12,10 @@ void loop(void)
 {
     StaticJsonDocument<200> position = GET(positionAddress);
     localizePosition(robotA, position);
+    position.clear();
     robotA.moveTo(0, 0);
     position = GET(positionAddress);
     localizePosition(robotA, position);
+    position.clear();
     robotA.moveTo(0, 0.5);
 }

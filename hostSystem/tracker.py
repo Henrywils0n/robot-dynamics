@@ -97,6 +97,8 @@ class Tracker:
                     heading = cv2.Rodrigues(np.matmul(Rod, self.rodrigues))[0][2] + np.pi/2
                     # updates the position of the marker
                     self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
+                    # drawing axis on the markers
+                    cv2.aruco.drawAxis(frame, self.mtx, self.dist, Rod, tvec, self.markerWidth)
         # draws the marker outlines, ids, and position onto the frame
         if makeframe:
             if self.originFound:
