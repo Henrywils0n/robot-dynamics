@@ -72,17 +72,18 @@ class Tracker:
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
         # ads the corners to the dictionary if they are detected
         if len(corners) > 0:
-            diamondCorners, diamondIds = cv2.aruco.detectCharucoDiamond(gray, corners, self.squareWidth/self.markerWidth)
+            diamondCorners, diamondIds = cv2.aruco.detectCharucoDiamond(gray, corners, ids, self.squareWidth/self.markerWidth)
             if len(diamondCorners) > 0:
-                diamondIds.flatten()
+                # draws the marker outlines, ids
+                cv2.aruco.drawDetectedDiamonds(frame, diamondCorners, diamondIds)
                 for i in range(len(diamondIds)):
-                    self.Corners[diamondIds[i][0][0]] = diamondCorners[i]
+                    self.Corners[diamondIds[i][0][0]] = diamondCorners[i].reshape(1, 4, 2)
                     # only calculates position if the origin is found. Backup condition if the origin id has found markers because the origin will be marked as found inside the loop (second condition isn't checked if first condition is true)
         if self.originFound or len(self.Corners[10]) != 0:
             # locates the position of the origin marker only once to eliminate a bit of noise (if camera is not rigid and it moves this should be changed)
             if not self.originFound:
                 # gets the rotation and translation vector of the origin marker
-                self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
+                self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.squareWidth, self.mtx, self.dist)
                 # calculates rotation matrix from the rotation vector
                 self.rodrigues = cv2.Rodrigues(self.originR[0][0])[0]
                 self.originFound = True
@@ -92,7 +93,7 @@ class Tracker:
                 # checks if there is a marker found at the specific id
                 if len(self.Corners[10+i]) != 0:
                     # finds marker position in the camera reference frame
-                    rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[i+10], self.markerWidth, self.mtx, self.dist)
+                    rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[i+10], self.squareWidth, self.mtx, self.dist)
                     # finds the difference in position between the origin and the marker and rotates it to the origin reference frame
                     position = np.matmul(self.rodrigues, tvec[0][0]-self.originT[0][0])
                     # rotation matrix of the marker
@@ -103,8 +104,7 @@ class Tracker:
                     self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
                     # drawing axis on the markers
                     cv2.aruco.drawAxis(frame, self.mtx, self.dist, Rod, tvec, self.markerWidth)
-        # draws the marker outlines, ids
-        cv2.aruco.drawDetectedDiamonds(frame, diamondCorners, diamondIds)
+
         # calculating FPS and drawing it onto the frame
         self.endTime = datetime.datetime.now()
         dt = (self.endTime - self.startTime).total_seconds()

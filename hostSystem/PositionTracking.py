@@ -1,6 +1,7 @@
 from webcamvideostream import WebcamVideoStream
 import cv2
 from chArucoTracker import Tracker
+#from tracker import Tracker
 import requests
 import pandas as pd
 import numpy as np
@@ -30,10 +31,10 @@ while True:
     if ret:
         rederedFrame = tracker.find_markerPos(frame)
         # add frame rate to the rendered frame
-        if makeframe:
-            cv2.imshow("frame", rederedFrame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+
+        cv2.imshow("frame", rederedFrame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
         print("(" + format(tracker.pos[1][0], '.2f') + ", " + format(tracker.pos[1][1], '.2f') + ", " + format(tracker.pos[1][2], '.2f') + ")" + "(" + format(tracker.pos[2][0], '.2f') + ", " + format(tracker.pos[2]
               [1], '.2f') + ", " + format(tracker.pos[2][2], '.2f') + ")" + "(" + format(tracker.pos[3][0], '.2f') + ", " + format(tracker.pos[3][1], '.2f') + ", " + format(tracker.pos[3][2], '.2f') + ")", end='\r')
 # release the camera

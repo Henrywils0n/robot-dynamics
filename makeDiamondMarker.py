@@ -27,5 +27,5 @@ ARUCO_DICT = {
 arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT["DICT_4X4_1000"])
 tag = np.zeros((600, 600, 1), dtype='uint8')
 ids = np.array([11, 11, 11, 11])
-cv2.aruco.drawCharucoDiamond(arucoDict, ids, 200, 120, tag)
+cv2.aruco.drawCharucoDiamond(arucoDict, ids, 200, 180, tag)
 cv2.imwrite("charuco11.png", tag)

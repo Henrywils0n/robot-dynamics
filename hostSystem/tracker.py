@@ -78,6 +78,7 @@ class Tracker:
         if self.originFound or len(self.Corners[10]) != 0:
             # locates the position of the origin marker only once to eliminate a bit of noise (if camera is not rigid and it moves this should be changed)
             if not self.originFound:
+                print(self.Corners[10].shape)
                 # gets the rotation and translation vector of the origin marker
                 self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
                 # calculates rotation matrix from the rotation vector
