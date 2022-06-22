@@ -53,6 +53,7 @@ class Tracker:
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
+        self.arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         self.startTime = datetime.datetime.now()
         self.address = address
 
@@ -78,7 +79,6 @@ class Tracker:
         if self.originFound or len(self.Corners[10]) != 0:
             # locates the position of the origin marker only once to eliminate a bit of noise (if camera is not rigid and it moves this should be changed)
             if not self.originFound:
-                print(self.Corners[10].shape)
                 # gets the rotation and translation vector of the origin marker
                 self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
                 # calculates rotation matrix from the rotation vector

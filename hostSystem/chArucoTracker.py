@@ -54,6 +54,8 @@ class Tracker:
         self.squareWidth = square_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
+        self.arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
+        self.arucoParams.useAruco3Detection = True
         self.startTime = datetime.datetime.now()
         self.address = address
 
