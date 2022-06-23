@@ -57,9 +57,6 @@ class Tracker:
         self.startTime = datetime.datetime.now()
         self.address = address
 
-    def getPos(self):
-        return self.pos
-
     def fixAngle(self, angle):
         # return an angle to -pi and pi
         while(angle > np.pi):
@@ -156,19 +153,14 @@ class Tracker:
     # calls the async function infinitely in a thread to constantly update the server
 
     def runPutThread(self):
-        pos = self.getPos()
-        prevSentPos = pos
-        data = [{'id': 1, 'position': pos[1]}, {'id': 2, 'position': pos[2]}, {'id': 3, 'position': pos[3]}]
+        prevSentPos = np.copy(self.pos)
+        data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
         asyncio.run(self.put_data(data))
         while(True):
             if self.Stop:
                 return
-            pos = self.getPos()
-            print(prevSentPos)
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            """
-            if (np.absolute(pos - prevSentPos) > 0.03).any():
-                prevSentPos = pos
-                data = [{'id': 1, 'position': pos[1]}, {'id': 2, 'position': pos[2]}, {'id': 3, 'position': pos[3]}]
+            if (np.absolute(self.pos - prevSentPos) > 0.02).any():
+                prevSentPos = np.copy(self.pos)
+                data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
                 asyncio.run(self.put_data(data))
-                """
