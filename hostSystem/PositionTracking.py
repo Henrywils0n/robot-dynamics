@@ -34,8 +34,10 @@ while True:
         cv2.imshow("frame", rederedFrame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        """
         print("(" + format(tracker.pos[1][0], '.2f') + ", " + format(tracker.pos[1][1], '.2f') + ", " + format(tracker.pos[1][2], '.2f') + ")" + "(" + format(tracker.pos[2][0], '.2f') + ", " + format(tracker.pos[2]
               [1], '.2f') + ", " + format(tracker.pos[2][2], '.2f') + ")" + "(" + format(tracker.pos[3][0], '.2f') + ", " + format(tracker.pos[3][1], '.2f') + ", " + format(tracker.pos[3][2], '.2f') + ")", end='\r')
+              """
 # release the camera
 vs.stop()
 vs.stream.release()

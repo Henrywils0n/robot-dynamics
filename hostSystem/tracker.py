@@ -11,7 +11,7 @@ from threading import Thread
 class Tracker:
     # importing the camera matrix and distortion coefficients
     # if the file path is working get rid of the folder or add a non relative path
-    npfile = np.load("hostSystem/calibration.npz")
+    npfile = np.load("calibration.npz")
     mtx = npfile["mtx"]
     dist = npfile["dist"]
     # declaring the dictionary that will store the corners of the markers at a specific id
@@ -56,6 +56,9 @@ class Tracker:
         self.arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         self.startTime = datetime.datetime.now()
         self.address = address
+
+    def getPos(self):
+        return self.pos
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
@@ -140,7 +143,7 @@ class Tracker:
         # start the thread that puts the data to the server
         self.Stop = False
         t = Thread(target=self.runPutThread)
-        t.daemon = True
+        t.daemon = False
         t.start()
         return self
 
@@ -153,14 +156,19 @@ class Tracker:
     # calls the async function infinitely in a thread to constantly update the server
 
     def runPutThread(self):
-        self.prevSentPos = self.pos
-        data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
+        pos = self.getPos()
+        prevSentPos = pos
+        data = [{'id': 1, 'position': pos[1]}, {'id': 2, 'position': pos[2]}, {'id': 3, 'position': pos[3]}]
         asyncio.run(self.put_data(data))
         while(True):
             if self.Stop:
                 return
+            pos = self.getPos()
+            print(prevSentPos)
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            if (np.absolute(self.pos - self.prevSentPos) > 0.03).any():
-                self.prevSentPos = self.pos
-                data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
+            """
+            if (np.absolute(pos - prevSentPos) > 0.03).any():
+                prevSentPos = pos
+                data = [{'id': 1, 'position': pos[1]}, {'id': 2, 'position': pos[2]}, {'id': 3, 'position': pos[3]}]
                 asyncio.run(self.put_data(data))
+                """
