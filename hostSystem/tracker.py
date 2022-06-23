@@ -160,7 +160,7 @@ class Tracker:
             if self.Stop:
                 return
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            elif abs(self.pos - self.prevSentPos).any() > 0.03:
+            if (np.absolute(self.pos - self.prevSentPos) > 0.03).any():
                 self.prevSentPos = self.pos
                 data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
                 asyncio.run(self.put_data(data))

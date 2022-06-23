@@ -29,7 +29,7 @@ StaticJsonDocument<200> GET(String Address)
 void localize(String address, Robot &robot)
 {
     // sends the address of the get request to the ESP8266
-    Serial.println(Address);
+    Serial.println(address);
     // waits for the ESP8266 to send the data
     while (1)
     {
@@ -52,7 +52,7 @@ void localize(String address, Robot &robot)
                 doc.clear();
                 clearLeftEncoder();
                 clearRightEncoder();
-                return
+                return;
             }
         }
     }
