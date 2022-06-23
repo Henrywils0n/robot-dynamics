@@ -25,7 +25,7 @@ ARUCO_DICT = {
     "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
 }
 arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT["DICT_4X4_1000"])
-tag = np.zeros((999, 999, 1), dtype='uint8')
-ids = np.array([11, 11, 11, 11])
-cv2.aruco.drawCharucoDiamond(arucoDict, ids, 333, 310, tag)
-cv2.imwrite("charuco11.png", tag)
+tag = np.zeros((600, 600, 1), dtype='uint8')
+cv2.aruco.drawMarker(arucoDict, 12, 600, tag, 1)
+
+cv2.imwrite("aruco12.png", tag)

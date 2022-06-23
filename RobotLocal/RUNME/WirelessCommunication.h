@@ -26,9 +26,34 @@ StaticJsonDocument<200> GET(String Address)
 }
 
 // updates the robots position with data from the json document position
-void localizePosition(Robot &robot, StaticJsonDocument<200> position)
+void localize(String address, Robot &robot)
 {
-    robot.x = position["position"][0].as<String>().toFloat();
-    robot.y = position["position"][1].as<String>().toFloat();
-    robot.theta = position["position"][2].as<String>().toFloat();
+    // sends the address of the get request to the ESP8266
+    Serial.println(Address);
+    // waits for the ESP8266 to send the data
+    while (1)
+    {
+        if (Serial.available())
+        {
+            // loads the data into the json document
+            StaticJsonDocument<200> doc;
+            DeserializationError error = deserializeJson(doc, Serial);
+            // if the data is not valid try again until it is
+            if (error != DeserializationError::Ok)
+            {
+                localize(address, robot);
+                return;
+            }
+            else
+            {
+                robot.x = doc["position"][0].as<String>().toFloat();
+                robot.y = doc["position"][1].as<String>().toFloat();
+                robot.theta = doc["position"][2].as<String>().toFloat();
+                doc.clear();
+                clearLeftEncoder();
+                clearRightEncoder();
+                return
+            }
+        }
+    }
 }

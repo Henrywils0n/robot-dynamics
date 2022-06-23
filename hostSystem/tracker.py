@@ -153,10 +153,14 @@ class Tracker:
     # calls the async function infinitely in a thread to constantly update the server
 
     def runPutThread(self):
+        self.prevSentPos = self.pos
+        data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
+        asyncio.run(self.put_data(data))
         while(True):
             if self.Stop:
-                print("Stopping Put Thread")
                 return
-            else:
+            # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
+            elif any(abs(self.pos - self.prevSentPos) > 0.03):
+                self.prevSentPos = self.pos
                 data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
                 asyncio.run(self.put_data(data))

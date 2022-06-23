@@ -1,6 +1,5 @@
 from webcamvideostream import WebcamVideoStream
 import cv2
-#from chArucoTracker import Tracker
 from tracker import Tracker
 import requests
 import pandas as pd
