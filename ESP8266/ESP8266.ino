@@ -39,6 +39,7 @@ void PUT(String address, String payload)
   WiFiClient client;
   HTTPClient http;
   http.begin(client, address);
+  http.addHeader("Content-Type", "application/json");
   int httpCode = http.PUT(payload);
   http.end();
   return;
@@ -65,9 +66,11 @@ void loop()
       {
         StaticJsonDocument<200> doc;
         doc["id"] = req["id"].as<int>();
-        doc["x"] = position[0].as<float>();
-        doc["y"] = position[1].as<float>();
-        doc["theta"] = position[2].as<float>();
+        // add position array to doc
+        JsonArray pos = doc.createNestedArray("position");
+        pos.add(req["position"][0].as<float>());
+        pos.add(req["position"][1].as<float>());
+        pos.add(req["position"][2].as<float>());
         String payload;
         serializeJson(doc, payload);
         PUT(req["address"].as<String>(), payload);

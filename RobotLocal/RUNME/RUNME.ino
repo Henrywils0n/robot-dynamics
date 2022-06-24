@@ -15,7 +15,9 @@ void loop(void)
     for (int i = 0; i < 4; i++)
     {
         localize(positionAddress, robotA);
-        // robotA.moveTo(positions[i][0], positions[i][1]);
         putPosition(sendPositionAddress, robotA);
+        robotA.moveTo(positions[i][0], positions[i][1]);
+        putPosition(sendPositionAddress, robotA);
+        delay(500);
     }
 }

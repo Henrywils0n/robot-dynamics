@@ -24,9 +24,9 @@ void localize(String address, Robot &robot)
             }
             else
             {
-                robot.x = doc["position"][0].as<String>().toFloat();
-                robot.y = doc["position"][1].as<String>().toFloat();
-                robot.theta = doc["position"][2].as<String>().toFloat();
+                robot.x = doc["position"][0].as<float>();
+                robot.y = doc["position"][1].as<float>();
+                robot.theta = doc["position"][2].as<float>();
                 doc.clear();
                 clearLeftEncoder();
                 clearRightEncoder();
