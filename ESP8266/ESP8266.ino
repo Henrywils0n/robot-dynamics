@@ -34,17 +34,46 @@ void GET(String address)
     return;
   }
 }
+void PUT(String address, String payload)
+{
+  WiFiClient client;
+  HTTPClient http;
+  http.begin(client, address);
+  int httpCode = http.PUT(payload);
+  http.end();
+  return;
+}
 void setup()
 {
   Serial.begin(115200);
   connectWiFi();
 }
+
 void loop()
 {
   if (Serial.available())
   {
-    String address = Serial.readStringUntil('\n');
-    address.trim();
-    GET(address);
+    StaticJsonDocument<200> req;
+    DeserializationError error = deserializeJson(req, Serial);
+    if (error == DeserializationError::Ok)
+    {
+      if (req["type"].as<String>() == "GET")
+      {
+        GET(req["address"].as<String>());
+      }
+      if (req["type"].as<String>() == "PUT")
+      {
+        StaticJsonDocument<200> doc;
+        doc["id"] = req["id"].as<int>();
+        doc["x"] = position[0].as<float>();
+        doc["y"] = position[1].as<float>();
+        doc["theta"] = position[2].as<float>();
+        String payload;
+        serializeJson(doc, payload);
+        PUT(req["address"].as<String>(), payload);
+        doc.clear();
+      }
+    }
+    req.clear();
   }
 }

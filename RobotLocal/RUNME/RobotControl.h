@@ -47,13 +47,16 @@ class Robot
 public:
     // position of the robot on the grid
     float x, y, theta;
+    // robot id
+    int id;
     // sets up required pin modes and objects
-    Robot(float X, float Y, float THETA)
+    Robot(float X, float Y, float THETA, int ID)
     {
         // sets the position and heading to the specified values
         x = X;
         y = Y;
         theta = THETA;
+        id = ID;
         // initializes the motor controller
         setupArdumoto();
         // initializes the encoders and interrupts
