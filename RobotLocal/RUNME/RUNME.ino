@@ -1,23 +1,19 @@
 #include "RobotControl.h"
-#include "WirelessCommunication.h"
 int id = 1;
-String positionAddress = "http://192.168.0.181:3000/agents/" + String(id);
-String sendPositionAddress = "http://192.168.0.181:3000/agentsLocal/" + String(id);
+String server = "http://192.168.0.181:3000";
 void setup(void)
 {
     Serial.begin(115200);
 }
 
-Robot robotA(0, 0, pi / 2, id);
+Robot robotA(0, 0, pi / 2, id, server);
 float positions[4][2] = {{0, 0}, {0, 1}, {0.5, 0.5}, {0, 1}};
 void loop(void)
 {
     for (int i = 0; i < 4; i++)
     {
-        localize(positionAddress, robotA);
-        putPosition(sendPositionAddress, robotA);
+        robotA.localize();
         robotA.moveTo(positions[i][0], positions[i][1]);
-        putPosition(sendPositionAddress, robotA);
-        delay(500);
+        delay(5000);
     }
 }

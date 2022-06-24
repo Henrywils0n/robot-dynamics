@@ -1,4 +1,5 @@
 #include <math.h>
+#include <ArduinoJson.h>
 // Pin definitions
 #define DIRR 7  // Direction control for motor B
 #define DIRL 8  // Direction control for motor A
@@ -49,14 +50,17 @@ public:
     float x, y, theta;
     // robot id
     int id;
+    // address of the server
+    String serverAddress;
     // sets up required pin modes and objects
-    Robot(float X, float Y, float THETA, int ID)
+    Robot(float X, float Y, float THETA, int ID, String address)
     {
         // sets the position and heading to the specified values
         x = X;
         y = Y;
         theta = THETA;
         id = ID;
+        serverAddress = address;
         // initializes the motor controller
         setupArdumoto();
         // initializes the encoders and interrupts
@@ -78,6 +82,7 @@ public:
         int prevTime = micros();
         int currentTime;
         float directionalErr;
+
         // absolute positional error
         float err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
         // angle error
@@ -86,6 +91,7 @@ public:
         while (err > Err)
         {
             // updates position, time, and error
+            putPosition();
             updatePosition();
             currentTime = micros();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
@@ -163,6 +169,58 @@ public:
         digitalWrite(DIRL, DirWL);
         analogWrite(PWMR, WR);
         analogWrite(PWML, WL);
+    }
+    void localize()
+    {
+        String address = serverAddress + "/agents/" + id;
+        // sends the address of the get request to the ESP8266
+        StaticJsonDocument<200> req;
+        req["type"] = "GET";
+        req["address"] = address;
+        serializeJson(req, Serial);
+        req.clear();
+        // waits for the ESP8266 to send the data
+        while (1)
+        {
+            if (Serial.available())
+            {
+                // loads the data into the json document
+                StaticJsonDocument<200> doc;
+                DeserializationError error = deserializeJson(doc, Serial);
+                // if the data is not valid try again until it is
+                if (error != DeserializationError::Ok)
+                {
+                    localize();
+                    return;
+                }
+                else
+                {
+                    x = doc["position"][0].as<float>();
+                    y = doc["position"][1].as<float>();
+                    theta = doc["position"][2].as<float>();
+                    doc.clear();
+                    clearLeftEncoder();
+                    clearRightEncoder();
+                    return;
+                }
+            }
+        }
+    }
+    void putPosition()
+    {
+        String address = serverAddress + "/agentsLocal/" + id;
+        // sends the address of the get request to the ESP8266
+        StaticJsonDocument<200> req;
+
+        req["type"] = "PUT";
+        req["address"] = address;
+        req["id"] = id;
+        JsonArray position = req.createNestedArray("position");
+        position.add(x);
+        position.add(y);
+        position.add(theta);
+        serializeJson(req, Serial);
+        req.clear();
     }
 
 private:
