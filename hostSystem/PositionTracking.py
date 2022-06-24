@@ -33,7 +33,7 @@ while True:
         cv2.imshow("frame", rederedFrame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        if cv2.waitkey(1) & 0xFF == ord('r'):
+        if cv2.waitKey(1) & 0xFF == ord('r'):
             tracker.originFound = False
 
         print("(" + format(tracker.pos[1][0], '.2f') + ", " + format(tracker.pos[1][1], '.2f') + ", " + format(tracker.pos[1][2], '.2f') + ")" + "(" + format(tracker.pos[2][0], '.2f') + ", " + format(tracker.pos[2]
