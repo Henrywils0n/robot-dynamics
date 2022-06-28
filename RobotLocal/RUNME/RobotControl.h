@@ -87,8 +87,9 @@ public:
         float err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
         // angle error
         float thetaErr = fixAngle(atan2(Y - y, X - x) - theta);
-        putData(err, thetaErr, theta);
-        // continues to drive while the absolute positional Error on position is greater than the tolerance of Err
+        // used for debugging
+        // putData(err, thetaErr, theta);
+        //  continues to drive while the absolute positional Error on position is greater than the tolerance of Err
         while (err > Err)
         {
             // updates position, time, and error

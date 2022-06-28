@@ -6,6 +6,7 @@ import asyncio
 import aiohttp
 from ast import Pass
 from threading import Thread
+import json
 
 
 class Tracker:
@@ -117,10 +118,9 @@ class Tracker:
         return frame
 
     # generates task list of put requests for the asyc function
-    def get_tasks(self, session, data):
+    def get_tasks(self, session, JSON):
         tasks = []
-        for i in range(0, 3):
-            tasks.append(session.put(self.address + 'agents/' + str(i+1), data=data[i]))
+        tasks.append(session.put(self.address + 'agents/', json=JSON))
         return tasks
 
     # async function that sends the data to the server
@@ -154,13 +154,13 @@ class Tracker:
 
     def runPutThread(self):
         prevSentPos = np.copy(self.pos)
-        data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
-        asyncio.run(self.put_data(data))
+        JSON = {"agents": [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]}
+        asyncio.run(self.put_data(JSON))
         while(True):
             if self.Stop:
                 return
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
             if (np.absolute(self.pos - prevSentPos) > 0.02).any():
                 prevSentPos = np.copy(self.pos)
-                data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
-                asyncio.run(self.put_data(data))
+                JSON = {"agents": [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]}
+                asyncio.run(self.put_data(JSON))

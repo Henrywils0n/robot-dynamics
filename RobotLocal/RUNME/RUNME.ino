@@ -13,14 +13,9 @@ void loop(void)
 {
     for (int i = 0; i < 3; i++)
     {
-        // robotA.localize();
+        robotA.localize();
+        robotA.putPosition();
         robotA.moveTo(positions[i][0], positions[i][1]);
-
-        // robotA.putPosition();
-        robotA.x = localizedPos[i][0];
-        robotA.y = localizedPos[i][1];
-        robotA.theta = localizedPos[i][2];
-
         delay(3000);
     }
 }
