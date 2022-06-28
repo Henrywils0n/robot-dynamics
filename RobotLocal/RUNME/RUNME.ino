@@ -7,13 +7,20 @@ void setup(void)
 }
 
 Robot robotA(0, 0, pi / 2, id, server);
-float positions[4][2] = {{0, 0}, {0, 1}, {0.5, 0.5}, {0, 1}};
+float positions[3][2] = {{0, 1}, {0.5, 0.5}, {0, 0}};
+float localizedPos[3][3] = {{0, 0.95, pi / 2 + 0.2}, {0.45, 0.52, 11.0 / 16.0 * pi}, {-0.02, 0.05, pi / 2}};
 void loop(void)
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
-        robotA.localize();
+        // robotA.localize();
         robotA.moveTo(positions[i][0], positions[i][1]);
-        delay(5000);
+
+        // robotA.putPosition();
+        robotA.x = localizedPos[i][0];
+        robotA.y = localizedPos[i][1];
+        robotA.theta = localizedPos[i][2];
+
+        delay(3000);
     }
 }

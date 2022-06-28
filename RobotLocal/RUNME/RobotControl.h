@@ -10,7 +10,7 @@
 // Encoder ticks and interrupt functions are global because it wouldn't compile with them as members and methods
 unsigned int leftEncoderTicks = 0;
 unsigned int rightEncoderTicks = 0;
-double pi = M_PI;
+float pi = M_PI;
 // Interrupts for encoders
 void incrementLeftEncoder()
 {
@@ -34,11 +34,11 @@ float fixAngle(float angle)
 {
     while (angle > pi)
     {
-        angle -= 2 * pi;
+        angle -= 2.0f * pi;
     }
     while (angle < -pi)
     {
-        angle += 2 * pi;
+        angle += 2.0f * pi;
     }
     return angle;
 }
@@ -87,11 +87,12 @@ public:
         float err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
         // angle error
         float thetaErr = fixAngle(atan2(Y - y, X - x) - theta);
+        putData(err, thetaErr, theta);
         // continues to drive while the absolute positional Error on position is greater than the tolerance of Err
         while (err > Err)
         {
             // updates position, time, and error
-            putPosition();
+            // putPosition();
             updatePosition();
             currentTime = micros();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
@@ -101,7 +102,7 @@ public:
             // according to how productive moving forward or backward is)
             directionalErr = err * cos(thetaErr);
             // flips the error by 180 degrees if the robot is driving backwards
-            if (directionalErr < 0)
+            if (directionalErr < 0.0f)
             {
                 thetaErr = fixAngle(thetaErr - pi);
             }
@@ -147,14 +148,28 @@ public:
         float wL = (v - R * w) / r;
         // set Directions according to the speed
         // 1 moves forward, 0 moves backward (if this isn't true on a robot flip the wires going to the motor)
-        DirWL = (wL >= 0);
-        DirWR = (wR >= 0);
+        if (wR > 0)
+        {
+            DirWR = 1;
+        }
+        else
+        {
+            DirWR = 0;
+        }
+        if (wL > 0)
+        {
+            DirWL = 1;
+        }
+        else
+        {
+            DirWL = 0;
+        }
         // using the calibrated values convert the speed to the correct PWM values
         // robot starts moving at 103 (on laplace)
         // at max reading W of each wheel is about 19.5 on the floor(precision does not really matter its just helpful)
         // set the max left wheel speed a little higher to account for differences in the motors to make it drive straighter
         int WR = map(abs(wR), 0, 19.5, 76, 255);
-        int WL = map(abs(wL), 0, 19.8, 76, 255);
+        int WL = map(abs(wL), 0, 19.5, 76, 255);
         // setting cutoffs for the motors
         if (WR > 255)
             WR = 255;
@@ -222,6 +237,22 @@ public:
         serializeJson(req, Serial);
         req.clear();
     }
+    void putData(float d1, float d2, float d3)
+    {
+        String address = serverAddress + "/agentsLocal/" + id;
+        // sends the address of the get request to the ESP8266
+        StaticJsonDocument<200> req;
+
+        req["type"] = "PUT";
+        req["address"] = address;
+        req["id"] = id;
+        JsonArray position = req.createNestedArray("position");
+        position.add(d1);
+        position.add(d2);
+        position.add(d3);
+        serializeJson(req, Serial);
+        req.clear();
+    }
 
 private:
     // radius of the wheels
@@ -229,7 +260,8 @@ private:
     // radius from the centre to the wheel
     float R = 0.082;
     // direction of each wheel, 1 is forward, 0 is backward
-    byte DirWL, DirWR;
+    uint8_t DirWL = 1;
+    uint8_t DirWR = 1;
     // Linear velocity gains
     float Kp = 1.5;
     float Ki = 0.005;
@@ -250,14 +282,34 @@ private:
         int diffRight = rightEncoderTicks;
         clearRightEncoder();
         // angle change since last update
-        float dTheta = (diffRight * (-1 + 2 * DirWR) - diffLeft * (-1 + 2 * DirWL)) * pi / 384 * r / R;
-        // distance traveled forward since last update assuming the angle traveled is constant at the previous angle plus half the angle change
-        float EncoderdL = (diffLeft * (-1 + 2 * DirWL) + diffRight * (-1 + 2 * DirWR)) * pi / 384 * r;
-        // adding a little bit of magnetometer angle for some stability it seems to be pretty accurate but not linear around a rotation
+        float dTheta = 0;
+        float dL = 0;
+        if (DirWL)
+        {
+            dTheta -= diffLeft;
+            dL += diffLeft;
+        }
+        else
+        {
+            dTheta += diffLeft;
+            dL -= diffLeft;
+        }
+        if (DirWR)
+        {
+            dTheta += diffRight;
+            dL += diffRight;
+        }
+        else
+        {
+            dTheta -= diffRight;
+            dL -= diffRight;
+        }
+        dL *= pi / 384.0f * r;
+        dTheta *= pi / 384.0f * r / R;
 
         // calculating the new position
-        float EncoderdX = EncoderdL * cos(theta + 0.5 * dTheta);
-        float EncoderdY = EncoderdL * sin(theta + 0.5 * dTheta);
+        float EncoderdX = dL * cos(theta + 0.5f * dTheta);
+        float EncoderdY = dL * sin(theta + 0.5f * dTheta);
         theta += (dTheta);
         fixTheta();
         x += EncoderdX;
@@ -269,11 +321,11 @@ private:
     {
         while (theta > pi)
         {
-            theta -= 2 * pi;
+            theta -= 2.0f * pi;
         }
         while (theta < -pi)
         {
-            theta += 2 * pi;
+            theta += 2.0f * pi;
         }
     }
 
