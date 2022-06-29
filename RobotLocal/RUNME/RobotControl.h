@@ -88,7 +88,8 @@ public:
         // angle error
         float thetaErr = fixAngle(atan2(Y - y, X - x) - theta);
         // used for debugging
-        // putData(err, thetaErr, theta);
+        putPosition();
+        putData(err, thetaErr, 0.0f);
         //  continues to drive while the absolute positional Error on position is greater than the tolerance of Err
         while (err > Err)
         {
@@ -211,9 +212,9 @@ public:
                 }
                 else
                 {
-                    x = doc["position"][0].as<float>();
-                    y = doc["position"][1].as<float>();
-                    theta = doc["position"][2].as<float>();
+                    x = doc["position"][0];
+                    y = doc["position"][1];
+                    theta = doc["position"][2];
                     doc.clear();
                     clearLeftEncoder();
                     clearRightEncoder();
@@ -246,7 +247,7 @@ public:
 
         req["type"] = "PUT";
         req["address"] = address;
-        req["id"] = id;
+        req["id"] = id + 1;
         JsonArray position = req.createNestedArray("position");
         position.add(d1);
         position.add(d2);
