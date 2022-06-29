@@ -13,4 +13,4 @@ async def get_data():
 
 while True:
     data = asyncio.run(get_data())
-    print("(" + str(data[0]['position'][0]) + ", " + str(data[0]['position'][1]) + ", " + str(data[0]['position'][2]) + ") (" + str(data[1]['position'][0]) + ", " + str(data[1]['position'][2]) + ")", end="\r")
+    print("(" + str(data[0]['position'][0]) + ", " + str(data[0]['position'][1]) + ", " + str(data[0]['position'][2]) + ") (" + str(data[1]['position'][0]) + ", " + str(data[1]['position'][1]) + ")", end="\r")

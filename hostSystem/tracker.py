@@ -95,7 +95,7 @@ class Tracker:
                     # rotation matrix of the marker
                     Rod = cv2.Rodrigues(rvec[0][0])[0]
                     # multiply the rotation matrix of the marker with the rotation matrix of the origin and convert it back to a rotation vector. R_Z is the heading and the heading of the origin marker is added to the heading
-                    heading = cv2.Rodrigues(np.matmul(Rod, self.rodrigues))[0][2] + np.pi/2
+                    heading = cv2.Rodrigues(np.matmul(self.rodrigues, Rod))[0][2] + np.pi/2
                     # updates the position of the marker
                     self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
                     # drawing axis on the markers
