@@ -88,8 +88,7 @@ public:
         // angle error
         float thetaErr = fixAngle(atan2(Y - y, X - x) - theta);
         // used for debugging
-        putPosition();
-        putData(err, thetaErr, 0.0f);
+        // putPosition();
         //  continues to drive while the absolute positional Error on position is greater than the tolerance of Err
         while (err > Err)
         {
@@ -239,33 +238,17 @@ public:
         serializeJson(req, Serial);
         req.clear();
     }
-    void putData(float d1, float d2, float d3)
-    {
-        String address = serverAddress + "/agentsLocal/" + id;
-        // sends the address of the get request to the ESP8266
-        StaticJsonDocument<200> req;
-
-        req["type"] = "PUT";
-        req["address"] = address;
-        req["id"] = id + 1;
-        JsonArray position = req.createNestedArray("position");
-        position.add(d1);
-        position.add(d2);
-        position.add(d3);
-        serializeJson(req, Serial);
-        req.clear();
-    }
 
 private:
     // radius of the wheels
-    float r = 0.034;
+    float r = 0.0325;
     // radius from the centre to the wheel
     float R = 0.082;
     // direction of each wheel, 1 is forward, 0 is backward
     uint8_t DirWL = 1;
     uint8_t DirWR = 1;
     // Linear velocity gains
-    float Kp = 1.5;
+    float Kp = 1.7;
     float Ki = 0.005;
     float Kd = 0.5;
     // Angular velocity gains

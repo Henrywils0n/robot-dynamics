@@ -65,7 +65,7 @@ class Tracker:
             angle += 2*np.pi
         return angle
 
-    def find_markerPos(self, frame, makeframe=True):
+    def find_markerPos(self, frame):
         # accepts a frame and locates markers and updates their positions and draws their position and info onto the frame
         # converts to gray scale and finds the aruco markers
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -101,18 +101,18 @@ class Tracker:
                     # drawing axis on the markers
                     cv2.aruco.drawAxis(frame, self.mtx, self.dist, Rod, tvec, self.markerWidth)
         # draws the marker outlines, ids, and position onto the frame
-        if makeframe:
-            if self.originFound:
-                # draws the axis on the origin marker
-                cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
-            cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-            # calculating FPS and drawing it onto the frame
-            self.endTime = datetime.datetime.now()
-            dt = (self.endTime - self.startTime).total_seconds()
-            self.startTime = self.endTime
-            # preventing division by zero error
-            if dt != 0:
-                cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+        if self.originFound:
+            # draws the axis on the origin marker
+            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
+        cv2.aruco.drawDetectedMarkers(frame, corners, ids)
+        # calculating FPS and drawing it onto the frame
+        self.endTime = datetime.datetime.now()
+        dt = (self.endTime - self.startTime).total_seconds()
+        self.startTime = self.endTime
+        # preventing division by zero error
+        if dt != 0:
+            cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         return frame
 
