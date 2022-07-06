@@ -1,7 +1,6 @@
 from tracker import Tracker
 import requests
 import pandas as pd
-import numpy as np
 
 targets = False
 filename = 'testData.xlsx'

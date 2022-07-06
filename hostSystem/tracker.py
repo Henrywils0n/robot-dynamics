@@ -1,5 +1,4 @@
 import cv2
-import sys
 import numpy as np
 import datetime
 import asyncio
@@ -7,7 +6,6 @@ import aiohttp
 from ast import Pass
 from threading import Thread
 from webcamvideostream import WebcamVideoStream
-import time
 
 
 class Tracker:
