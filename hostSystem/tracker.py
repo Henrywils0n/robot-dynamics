@@ -46,7 +46,7 @@ class Tracker:
     }
     # constructor that takes the marker width and the aruco type
 
-    def __init__(self, marker_width, aruco_type, address):
+    def __init__(self, marker_width, aruco_type):
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
