@@ -128,7 +128,7 @@ class Tracker:
     # async function that sends the data to the server
 
     async def put_data(self, data):
-        # put the data in r1, r2, and r3 into the server
+        # put the data to the server
         async with aiohttp.ClientSession() as session:
             tasks = self.get_tasks(session, data)
             try:
@@ -136,10 +136,8 @@ class Tracker:
             except:
                 Pass
 
-    # starts the thread for put requests
-
     def startThreads(self):
-        # start the thread that puts the data to the server
+        # starts threads for reading in new frames, displaying frames, processing frames, and sending data to the server
         self.Stop = False
         self.runGetFrame()
         t2 = Thread(target=self.runProcessFrame)
@@ -156,7 +154,7 @@ class Tracker:
     # ends the thread for put requests
 
     def stopThread(self):
-        # stop the thread that puts the data to the server
+        # stops all threads
         self.Stop = True
         self.vs.stop()
         self.vs.stream.release()
@@ -178,6 +176,7 @@ class Tracker:
                 asyncio.run(self.put_data(data))
 
     def runProcessFrame(self):
+        # finds markers in the most recent frame in a loop
         while(True):
             if self.Stop:
                 return
@@ -185,21 +184,28 @@ class Tracker:
                 self.outFrame = self.find_markerPos(self.vs.frame)
 
     def runGetFrame(self):
+        # initializes the video stream
         self.vs = WebcamVideoStream(src=0).start()
         self.vs.start()
+        # sets an initial outframe to prevent crashing before the first frame is processed
         self.outFrame = self.vs.frame
 
     def runShowFrame(self):
         while(True):
+            # stops loop if thread is stopped
             if self.Stop:
                 return
+            # shows frame
             if self.vs.grabbed:
                 cv2.imshow('frame', self.outFrame)
+            # prints data
             print("(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " + format(self.pos[2]
                   [1], '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")", end='\r')
+            # stops all threads when q is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.stopThread()
                 break
+            # reloads the origin position if r is pressed
             if cv2.waitKey(1) & 0xFF == ord('r'):
                 self.originFound = False
         return self
