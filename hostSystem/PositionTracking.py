@@ -4,7 +4,8 @@ from tracker import Tracker
 import requests
 import pandas as pd
 import numpy as np
-
+from multiprocessing import Process
+from positionPUT import multiPUT
 targets = False
 filename = 'testData.xlsx'
 address = 'http://192.168.0.181:3000/'
@@ -21,10 +22,12 @@ vs = WebcamVideoStream(src=0).start()
 vs.start()
 
 # declares the aruco tracker
-tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address)
-tracker.startPutThread()
+tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000")
+put = multiPUT(address, tracker.pos)
 # reads the cap frame by frame and track then display the processed frame
 while True:
+    p = Process(target=put.runPut, args=(tracker.pos,))
+    p.start()
     ret = vs.grabbed
     frame = vs.frame
     if ret:
@@ -38,6 +41,7 @@ while True:
 
         print("(" + format(tracker.pos[1][0], '.2f') + ", " + format(tracker.pos[1][1], '.2f') + ", " + format(tracker.pos[1][2], '.2f') + ")" + "(" + format(tracker.pos[2][0], '.2f') + ", " + format(tracker.pos[2]
               [1], '.2f') + ", " + format(tracker.pos[2][2], '.2f') + ")" + "(" + format(tracker.pos[3][0], '.2f') + ", " + format(tracker.pos[3][1], '.2f') + ", " + format(tracker.pos[3][2], '.2f') + ")", end='\r')
+    p.join()
 # release the camera
 vs.stop()
 vs.stream.release()

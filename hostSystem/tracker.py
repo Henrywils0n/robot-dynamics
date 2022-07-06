@@ -2,9 +2,6 @@ import cv2
 import sys
 import numpy as np
 import datetime
-import asyncio
-import aiohttp
-from ast import Pass
 from threading import Thread
 
 
@@ -55,7 +52,6 @@ class Tracker:
         self.arucoParams = cv2.aruco.DetectorParameters_create()
         self.arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         self.startTime = datetime.datetime.now()
-        self.address = address
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
@@ -115,52 +111,3 @@ class Tracker:
             cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         return frame
-
-    # generates task list of put requests for the asyc function
-    def get_tasks(self, session, data):
-        tasks = []
-        for i in range(0, 3):
-            tasks.append(session.put(self.address + 'agents/' + str(i+1), data=data[i]))
-        return tasks
-
-    # async function that sends the data to the server
-
-    async def put_data(self, data):
-        # put the data in r1, r2, and r3 into the server
-        async with aiohttp.ClientSession() as session:
-            tasks = self.get_tasks(session, data)
-            try:
-                await asyncio.gather(*tasks)
-            except:
-                Pass
-
-    # starts the thread for put requests
-
-    def startPutThread(self):
-        # start the thread that puts the data to the server
-        self.Stop = False
-        t = Thread(target=self.runPutThread)
-        t.daemon = False
-        t.start()
-        return self
-
-    # ends the thread for put requests
-
-    def stopPutThread(self):
-        # stop the thread that puts the data to the server
-        self.Stop = True
-
-    # calls the async function infinitely in a thread to constantly update the server
-
-    def runPutThread(self):
-        prevSentPos = np.array(self.pos)
-        data = [{'id': 1, 'position': prevSentPos[1]}, {'id': 2, 'position': prevSentPos[2]}, {'id': 3, 'position': prevSentPos[3]}]
-        asyncio.run(self.put_data(data))
-        while(True):
-            if self.Stop:
-                return
-            # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            if (np.absolute(self.pos - prevSentPos) > 0.02).any():
-                prevSentPos = np.array(self.pos)
-                data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
-                asyncio.run(self.put_data(data))
