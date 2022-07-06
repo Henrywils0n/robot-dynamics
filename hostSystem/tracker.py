@@ -6,6 +6,7 @@ import asyncio
 import aiohttp
 from ast import Pass
 from threading import Thread
+from webcamvideostream import WebcamVideoStream
 
 
 class Tracker:
@@ -136,19 +137,26 @@ class Tracker:
 
     # starts the thread for put requests
 
-    def startPutThread(self):
+    def startThreads(self):
         # start the thread that puts the data to the server
         self.Stop = False
         t = Thread(target=self.runPutThread)
         t.daemon = False
         t.start()
+        self.runGetFrame()
+        t2 = Thread(target=self.runShowFrame)
+        t2.daemon = False
+        t2.start()
         return self
 
     # ends the thread for put requests
 
-    def stopPutThread(self):
+    def stopThread(self):
         # stop the thread that puts the data to the server
         self.Stop = True
+        self.vs.stop()
+        self.vs.stream.release()
+        cv2.destroyAllWindows()
 
     # calls the async function infinitely in a thread to constantly update the server
 
@@ -164,3 +172,25 @@ class Tracker:
                 prevSentPos = np.copy(self.pos)
                 data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
                 asyncio.run(self.put_data(data))
+
+    def runProcessFrame(self):
+        while(True):
+            if self.Stop:
+                return
+            if self.vs.grabbed:
+                self.outFrame = self.find_markerPos(self.vs.frame)
+
+    def runGetFrame(self):
+        vs = WebcamVideoStream(src=0).start()
+        vs.start()
+
+    def runShowFrame(self):
+        while(True):
+            if self.Stop:
+                return
+            cv2.imshow('frame', self.outFrame)
+            print("(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " + format(self.pos[2][1],
+                  '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")", end='\r')
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        return self
