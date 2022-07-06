@@ -7,6 +7,7 @@ import aiohttp
 from ast import Pass
 from threading import Thread
 from webcamvideostream import WebcamVideoStream
+import time
 
 
 class Tracker:
@@ -140,13 +141,16 @@ class Tracker:
     def startThreads(self):
         # start the thread that puts the data to the server
         self.Stop = False
+        self.runGetFrame()
+        t2 = Thread(target=self.runProcessFrame)
+        t2.daemon = False
+        t2.start()
+        t3 = Thread(target=self.runShowFrame)
+        t3.daemon = False
+        t3.start()
         t = Thread(target=self.runPutThread)
         t.daemon = False
         t.start()
-        self.runGetFrame()
-        t2 = Thread(target=self.runShowFrame)
-        t2.daemon = False
-        t2.start()
         return self
 
     # ends the thread for put requests
@@ -181,16 +185,21 @@ class Tracker:
                 self.outFrame = self.find_markerPos(self.vs.frame)
 
     def runGetFrame(self):
-        vs = WebcamVideoStream(src=0).start()
-        vs.start()
+        self.vs = WebcamVideoStream(src=0).start()
+        self.vs.start()
+        self.outFrame = self.vs.frame
 
     def runShowFrame(self):
         while(True):
             if self.Stop:
                 return
-            cv2.imshow('frame', self.outFrame)
-            print("(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " + format(self.pos[2][1],
-                  '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")", end='\r')
+            if self.vs.grabbed:
+                cv2.imshow('frame', self.outFrame)
+            print("(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " + format(self.pos[2]
+                  [1], '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")", end='\r')
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.stopThread()
                 break
+            if cv2.waitKey(1) & 0xFF == ord('r'):
+                self.originFound = False
         return self

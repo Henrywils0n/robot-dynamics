@@ -1,4 +1,3 @@
-import cv2
 from tracker import Tracker
 import requests
 import pandas as pd
@@ -19,4 +18,3 @@ if targets:
 tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address)
 # starts threads for reading frames, outputing frames, processing frames, and sending data to the server
 tracker.startThreads()
-tracker.stopThread()
