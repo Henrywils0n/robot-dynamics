@@ -1,5 +1,5 @@
 #include "RobotControl.h"
-int id = 1;
+#define id 1
 String server = "http://192.168.0.181:3000";
 void setup(void)
 {

@@ -120,22 +120,6 @@ public:
             float w = KpTheta * thetaErr + KiTheta * integralTheta + KdTheta * derivativeTheta;
             // sets the speed of the robot
             drive(v, w);
-            // debug print statements for absolute and angular errors
-            /*
-            Serial.print(err);
-            Serial.print(thetaErr);
-            Serial.print("\n");
-            */
-            // debug print statements for position and heading
-            /*
-            Serial.print("(");
-            Serial.print(x);
-            Serial.print(",");
-            Serial.print(y);
-            Serial.print(",");
-            Serial.print(theta);
-            Serial.print(")\n");
-            */
         }
         // set the speed to zero once the new position is reached
         drive(0, 0);
@@ -185,11 +169,14 @@ public:
         analogWrite(PWMR, WR);
         analogWrite(PWML, WL);
     }
+
+    // Gets current x,y,theta from the server and updates the robot's position
     void localize()
     {
         String address = serverAddress + "/agents/" + id;
         // sends the address of the get request to the ESP8266
-        StaticJsonDocument<200> req;
+        // doc size determined by this int BUFFER_SIZE = JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(0); where object is the number of key value pairs and array size is the number of elements in the array
+        StaticJsonDocument<16> req;
         req["type"] = "GET";
         req["address"] = address;
         serializeJson(req, Serial);
@@ -200,7 +187,7 @@ public:
             if (Serial.available())
             {
                 // loads the data into the json document
-                StaticJsonDocument<200> doc;
+                StaticJsonDocument<40> doc;
                 DeserializationError error = deserializeJson(doc, Serial);
                 // if the data is not valid try again until it is
                 if (error != DeserializationError::Ok)
@@ -221,11 +208,13 @@ public:
             }
         }
     }
+
+    // sends the current x,y,theta odometry estimate to the server
     void putPosition()
     {
         String address = serverAddress + "/agentsLocal/" + id;
         // sends the address of the get request to the ESP8266
-        StaticJsonDocument<200> req;
+        StaticJsonDocument<56> req;
 
         req["type"] = "PUT";
         req["address"] = address;
