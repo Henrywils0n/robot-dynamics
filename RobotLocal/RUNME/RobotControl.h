@@ -145,8 +145,8 @@ public:
     void drive(float v, float w)
     {
         // angular velocities
-        float wR = (v + R * w) / r;
-        float wL = (v - R * w) / r;
+        float wR = (v + WB / 2 * w) / r;
+        float wL = (v - WB / 2 * w) / r;
         // set Directions according to the speed
         // 1 moves forward, 0 moves backward (if this isn't true on a robot flip the wires going to the motor)
         if (wR > 0)
@@ -166,19 +166,18 @@ public:
             DirWL = 0;
         }
         // using the calibrated values convert the speed to the correct PWM values
-        // robot starts moving at 103 (on laplace)
         // at max reading W of each wheel is about 19.5 on the floor(precision does not really matter its just helpful)
         // set the max left wheel speed a little higher to account for differences in the motors to make it drive straighter
-        int WR = map(abs(wR), 0, 19.5, 76, 255);
-        int WL = map(abs(wL), 0, 19.5, 76, 255);
+        int WR = map(abs(wR), 0, 19.5, 90, 255);
+        int WL = map(abs(wL), 0, 19.5, 90, 255);
         // setting cutoffs for the motors
         if (WR > 255)
             WR = 255;
-        else if (abs(wR) <= 0.25)
+        else if (abs(wR) <= 0.35)
             WR = 0;
         if (WL > 255)
             WL = 255;
-        else if (abs(wL) <= 0.25)
+        else if (abs(wL) <= 0.35)
             WL = 0;
         // sending signal to the motors
         digitalWrite(DIRR, DirWR);
@@ -241,9 +240,12 @@ public:
 
 private:
     // radius of the wheels
-    float r = 0.0325;
-    // radius from the centre to the wheel
-    float R = 0.082;
+    float r = 0.033;
+    // wheel base of the robot
+    float WB = 0.164 * 0.91f;
+    // calibration factor to convert encoder ticks to distance
+    float CL = pi / 384.0f * r;
+    float CR = pi / 384.0f * r;
     // direction of each wheel, 1 is forward, 0 is backward
     uint8_t DirWL = 1;
     uint8_t DirWR = 1;
@@ -271,26 +273,24 @@ private:
         float dL = 0;
         if (DirWL)
         {
-            dTheta -= diffLeft;
-            dL += diffLeft;
+            dTheta -= diffLeft * CL / WB * 2;
+            dL += diffLeft * CL;
         }
         else
         {
-            dTheta += diffLeft;
-            dL -= diffLeft;
+            dTheta += diffLeft * CL / WB * 2;
+            dL -= diffLeft * CL;
         }
         if (DirWR)
         {
-            dTheta += diffRight;
-            dL += diffRight;
+            dTheta += diffRight * CR / WB * 2;
+            dL += diffRight * CR;
         }
         else
         {
-            dTheta -= diffRight;
-            dL -= diffRight;
+            dTheta -= diffRight * CR / WB * 2;
+            dL -= diffRight * CR;
         }
-        dL *= pi / 384.0f * r;
-        dTheta *= pi / 384.0f * r / R;
 
         // calculating the new position
         float EncoderdX = dL * cos(theta + 0.5f * dTheta);
