@@ -153,15 +153,14 @@ class Tracker:
     # calls the async function infinitely in a thread to constantly update the server
 
     def runPutThread(self):
-        prevSentPos = np.copy(self.pos)
+        prevSentPos = np.array(self.pos)
         data = [{'id': 1, 'position': prevSentPos[1]}, {'id': 2, 'position': prevSentPos[2]}, {'id': 3, 'position': prevSentPos[3]}]
         asyncio.run(self.put_data(data))
         while(True):
             if self.Stop:
                 return
-            pos = np.copy(self.pos)
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            if (np.absolute(pos - prevSentPos) > 0.02).any():
-                prevSentPos = np.copy(pos)
-                data = [{'id': 1, 'position': pos[1]}, {'id': 2, 'position': pos[2]}, {'id': 3, 'position': pos[3]}]
+            if (np.absolute(self.pos - prevSentPos) > 0.02).any():
+                prevSentPos = np.array(self.pos)
+                data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
                 asyncio.run(self.put_data(data))
