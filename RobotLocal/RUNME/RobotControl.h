@@ -51,7 +51,8 @@ public:
     // robot id
     int id;
     // address of the server
-    String serverAddress;
+    char serverAddress[30] = {};
+    StaticJsonDocument<400> pathDoc;
     // sets up required pin modes and objects
     Robot(float X, float Y, float THETA, int ID, String address)
     {
@@ -60,7 +61,8 @@ public:
         y = Y;
         theta = THETA;
         id = ID;
-        serverAddress = address;
+
+        address.toCharArray(serverAddress, 30);
         // initializes the motor controller
         setupArdumoto();
         // initializes the encoders and interrupts
@@ -171,29 +173,31 @@ public:
     }
 
     // Gets current x,y,theta from the server and updates the robot's position
-    void localize()
+    int localize()
     {
-        String address = serverAddress + "/agents/" + id;
+        char address[35];
+        strcpy(address, serverAddress);
+        strcat(address, "/agents/");
+        char tempChar[2] = {id + '0', '\0'};
+        strcat(address, tempChar);
         // sends the address of the get request to the ESP8266
         // doc size determined by this int BUFFER_SIZE = JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(0); where object is the number of key value pairs and array size is the number of elements in the array
-        StaticJsonDocument<16> req;
+        StaticJsonDocument<80> req;
         req["type"] = "GET";
         req["address"] = address;
         serializeJson(req, Serial);
-        req.clear();
         // waits for the ESP8266 to send the data
         while (1)
         {
             if (Serial.available())
             {
                 // loads the data into the json document
-                StaticJsonDocument<40> doc;
+                StaticJsonDocument<130> doc;
                 DeserializationError error = deserializeJson(doc, Serial);
                 // if the data is not valid try again until it is
                 if (error != DeserializationError::Ok)
                 {
-                    localize();
-                    return;
+                    return 0;
                 }
                 else
                 {
@@ -203,6 +207,40 @@ public:
                     doc.clear();
                     clearLeftEncoder();
                     clearRightEncoder();
+                    return 1;
+                }
+            }
+        }
+    }
+
+    void getPath(int idx)
+    {
+        char address[34];
+        strcpy(address, serverAddress);
+        strcat(address, "/goal");
+        char tempChar[4] = {id + '0', '/', idx + '0', '\0'};
+        strcat(address, tempChar);
+        // sends the address of the get request to the ESP8266
+        // doc size determined by this int BUFFER_SIZE = JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(0); where object is the number of key value pairs and array size is the number of elements in the array
+        StaticJsonDocument<80> req;
+        req["type"] = "GET";
+        req["address"] = address;
+        serializeJson(req, Serial);
+        // waits for the ESP8266 to send the data
+        while (1)
+        {
+            if (Serial.available())
+            {
+                // loads the data into the json document
+                DeserializationError error = deserializeJson(pathDoc, Serial);
+                // if the data is not valid try again until it is
+                if (error != DeserializationError::Ok)
+                {
+                    getPath(idx);
+                    return;
+                }
+                else
+                {
                     return;
                 }
             }
@@ -212,7 +250,11 @@ public:
     // sends the current x,y,theta odometry estimate to the server
     void putPosition()
     {
-        String address = serverAddress + "/agentsLocal/" + id;
+        char address[40];
+        strcpy(address, serverAddress);
+        strcat(address, "/agentsLocal/");
+        char tempChar[2] = {id + '0', '\0'};
+
         // sends the address of the get request to the ESP8266
         StaticJsonDocument<56> req;
 

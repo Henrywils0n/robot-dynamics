@@ -120,7 +120,7 @@ class Tracker:
     def get_tasks(self, session, data):
         tasks = []
         for i in range(0, 3):
-            tasks.append(session.put(self.address + 'agents/' + str(i+1), data=data[i]))
+            tasks.append(session.put(self.address + 'agents/' + str(i+1), json=data[i]))
         return tasks
 
     # async function that sends the data to the server
@@ -162,7 +162,7 @@ class Tracker:
 
     def runPutThread(self):
         prevSentPos = np.copy(self.pos)
-        data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
+        data = [{'id': 1, 'position': self.pos[1].toList()}, {'id': 2, 'position': self.pos[2].toList()}, {'id': 3, 'position': self.pos[3].toList()}]
         asyncio.run(self.put_data(data))
         while(True):
             if self.Stop:
@@ -170,7 +170,7 @@ class Tracker:
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
             if (np.absolute(self.pos - prevSentPos) > 0.02).any():
                 prevSentPos = np.copy(self.pos)
-                data = [{'id': 1, 'position': self.pos[1]}, {'id': 2, 'position': self.pos[2]}, {'id': 3, 'position': self.pos[3]}]
+                data = [{'id': 1, 'position': self.pos[1].toList()}, {'id': 2, 'position': self.pos[2].toList()}, {'id': 3, 'position': self.pos[3].toList()}]
                 asyncio.run(self.put_data(data))
 
     def runProcessFrame(self):

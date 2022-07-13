@@ -6,25 +6,28 @@ void setup(void)
     Serial.begin(115200);
 }
 
-Robot robotA(0, 0, pi / 2, id, server);
-// CW
-/*
-float positions[16][2] = {{0.0f, 0.25f}, {0.0f, 0.5f}, {0.0f, 0.75f}, {0.0f, 1.0f}, {0.25f, 1.0f}, {0.5f, 1.0f}, {0.75f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.75f}, {1.0f, 0.5f}, {1.0f, 0.25f}, {1.0f, 0.0f}, {0.75f, 0.0f}, {0.5f, 0.0f}, {0.25f, 0.0f}, {0.0f, 0.0f}};
-*/
-// CCW
-/*
-float positions[16][2] = {{0.0f, 0.0f}, {0.25f, 0.0f}, {0.5f, 0.0f}, {0.75f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.25f}, {1.0f, 0.5f}, {1.0f, 0.75f}, {1.0f, 1.0f}, {0.75f, 1.0f}, {0.5f, 1.0f}, {0.25f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.75f}, {0.0f, 0.5f}, {0.0f, 0.25f}};
-*/
-float positions[16][2] = {{0.0f, 0.0f}, {0.25f, 0.25f}, {0.5f, 0.5f}, {0.25f, 0.75f}, {0.0f, 1.0f}, {-0.25f, 0.75f}, {-0.5f, 0.5f}, {-0.25f, 0.25f}, {0.0f, 0.0f}, {0.25f, -0.25f}, {0.5f, -0.5f}, {0.25f, -0.75f}, {0.0f, -1.0f}, {-0.25f, -0.75f}, {-0.5f, -0.5f}, {-0.25f, -0.25f}};
+
+
 void loop(void)
 {
-
-    for (int i = 0; i < 16; i++)
+    Robot robotA(0, 0, pi / 2, id, server);
+    robotA.getPath(1);
+    int idx = robotA.pathDoc["id"].as<int>( );
+    int total = robotA.pathDoc["total"].as<int>();
+    while (idx <= total)
     {
-        robotA.localize();
-        robotA.moveTo(positions[i][0], positions[i][1]);
+        robotA.getPath(idx);
+        int len = robotA.pathDoc["pos"].size();
+        for (int i = 0; i < len; i++)
+        {
+          int sucsess = 0;
+          while (!sucsess){
+            sucsess = robotA.localize();
+        }
+            robotA.moveTo(robotA.pathDoc["pos"][i][0].as<float>(), robotA.pathDoc["pos"][i][1].as<float>());
+        }
+        idx++;
+        
     }
-    robotA.localize();
-    robotA.moveTo(0.0f, 0.0f);
     delay(5000);
 }
