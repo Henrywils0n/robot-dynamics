@@ -162,7 +162,7 @@ class Tracker:
 
     def runPutThread(self):
         prevSentPos = np.copy(self.pos)
-        data = [{'id': 1, 'position': self.pos[1].toList()}, {'id': 2, 'position': self.pos[2].toList()}, {'id': 3, 'position': self.pos[3].toList()}]
+        data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
         asyncio.run(self.put_data(data))
         while(True):
             if self.Stop:
@@ -170,7 +170,7 @@ class Tracker:
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
             if (np.absolute(self.pos - prevSentPos) > 0.02).any():
                 prevSentPos = np.copy(self.pos)
-                data = [{'id': 1, 'position': self.pos[1].toList()}, {'id': 2, 'position': self.pos[2].toList()}, {'id': 3, 'position': self.pos[3].toList()}]
+                data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
                 asyncio.run(self.put_data(data))
 
     def runProcessFrame(self):
