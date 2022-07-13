@@ -41,7 +41,22 @@ if sendPath:
             else:
                 requests.delete(address+"goal"+str(i+1)+"/"+str(j+1))
                 j += 1
-
+# prompt the user to ask if each agent is being used
+for i in range(3):
+    while True:
+        print("Is agent " + str(i+1) + "being used? (y/n)")
+        if input() == "y" or input() == "Y":
+            data = {'id': i+1, 'ready': 0}
+            break
+        elif input() == "n" or input() == "N":
+            data = {"id": i+1, "ready": 1}
+        # check if some other character was entered
+        else:
+            print("Invalid input")
+            break
+            # go back to the beginning of the loop
+            continue
+    requests.put(address+"agentReady/" + str(i+1))
 # declares the aruco tracker class
 tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address)
 # starts threads for reading frames, outputing frames, processing frames, and sending data to the server
