@@ -268,6 +268,58 @@ public:
         serializeJson(req, Serial);
         req.clear();
     }
+    void setReady()
+    {
+        char address[40];
+        strcpy(address, serverAddress);
+        strcat(address, "/agentReady/");
+        char tempChar[2] = {id + '0', '\0'};
+        strcat(address, tempChar);
+        StaticJsonDocument<80> req;
+        req["type"] = "PUT";
+        req["address"] = address;
+        req["id"] = id;
+        req["ready"] = 1;
+        serializeJson(req, Serial);
+    }
+    int getReady()
+    {
+        char address[40];
+        strcpy(address, serverAddress);
+        strcat(address, "/agentGo/");
+        char tempChar[2] = {'1', '\0'};
+        strcat(address, tempChar);
+        StaticJsonDocument<56> req;
+        req["type"] = "GET";
+        req["address"] = address;
+        req["id"] = id;
+        serializeJson(req, Serial);
+        // waits for the ESP8266 to send the data
+        while (1)
+        {
+            if (Serial.available())
+            {
+                // loads the data into the json document
+                StaticJsonDocument<130> doc;
+                DeserializationError error = deserializeJson(doc, Serial);
+                // if the data is not valid try again until it is
+                if (error != DeserializationError::Ok)
+                {
+                    return 0;
+                }
+                else if (doc["ready"] == 1)
+                {
+                    doc.clear();
+                    return 1;
+                }
+                else
+                {
+                    doc.clear();
+                    return 0;
+                }
+            }
+        }
+    }
 
 private:
     // radius of the wheels

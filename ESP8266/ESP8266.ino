@@ -81,18 +81,25 @@ void loop()
       // does a put request only for currently working with the position (could easily be adapted if needed)
       if (req["type"].as<String>() == "PUT")
       {
-        // makes a payload to be sent to the server
         StaticJsonDocument<200> doc;
         doc["id"] = req["id"].as<int>();
-        // add position array to doc
-        JsonArray pos = doc.createNestedArray("position");
-        pos.add(req["position"][0].as<float>());
-        pos.add(req["position"][1].as<float>());
-        pos.add(req["position"][2].as<float>());
         String payload;
+        // add position array to doc
+        if (req.containsKey("position"))
+        {
+          JsonArray pos = doc.createNestedArray("position");
+          pos.add(req["position"][0].as<float>());
+          pos.add(req["position"][1].as<float>());
+          pos.add(req["position"][2].as<float>());
+        }
+        else if (req.containsKey("ready"))
+        {
+          doc["ready"] = req["ready"].as<int>();
+        }
         serializeJson(doc, payload);
         PUT(req["address"].as<String>(), payload);
         doc.clear();
+        // makes a payload to be sent to the server
       }
     }
     req.clear();

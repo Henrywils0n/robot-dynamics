@@ -6,14 +6,22 @@ void setup(void)
   Serial.begin(115200);
 }
 
-
-
 void loop(void)
 {
   Robot robotA(0, 0, pi / 2, id, server);
   robotA.getPath(1);
-  int idx = robotA.pathDoc["id"].as<int>( );
+  int idx = robotA.pathDoc["id"].as<int>();
   int total = robotA.pathDoc["total"].as<int>();
+  // robotA.localize();
+  // robotA.moveTo(robotA.pathDoc["path"][0][0].as<float>(), robotA.pathDoc["path"][0][1].as<float>());
+  robotA.setReady();
+
+  int Ready = 0;
+  while (!Ready)
+  {
+    Ready = robotA.getReady();
+  }
+
   while (idx <= total)
   {
     robotA.getPath(idx);
@@ -21,14 +29,14 @@ void loop(void)
     Serial.println(len);
     for (int i = 0; i < len; i++)
     {
-      int sucsess = 0;
-      while (!sucsess) {
-        sucsess = robotA.localize();
+      int success = 0;
+      while (!success)
+      {
+        success = robotA.localize();
       }
       robotA.moveTo(robotA.pathDoc["path"][i][0].as<float>(), robotA.pathDoc["path"][i][1].as<float>());
     }
     idx++;
-
   }
   delay(5000);
 }

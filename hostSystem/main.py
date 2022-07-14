@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import numpy as np
 from math import ceil
-
+import time
 sendPath = True
 filename = 'testData.xlsx'
 address = 'http://192.168.0.181:3000/'
@@ -41,23 +41,47 @@ if sendPath:
             else:
                 requests.delete(address+"goal"+str(i+1)+"/"+str(j+1))
                 j += 1
+requests.put(address+"agentGo/1", json={'ready': 0})
 # prompt the user to ask if each agent is being used
 for i in range(3):
+    invalid = False
     while True:
-        print("Is agent " + str(i+1) + "being used? (y/n)")
-        if input() == "y" or input() == "Y":
+        if invalid:
+            Input = input("Invalid input, try again. Is agent " + str(i+1) + " being used? (y/n): ")
+        else:
+            Input = input("Is agent " + str(i+1) + " being used? (y/n): ")
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
+        if i < 2:
+            print(LINE_UP, end=LINE_CLEAR)
+        if Input == 'y' or Input == 'Y':
             data = {'id': i+1, 'ready': 0}
+            print("", end='\r')
             break
-        elif input() == "n" or input() == "N":
-            data = {"id": i+1, "ready": 1}
+        elif Input == 'n' or Input == 'N':
+            data = {'id': i+1, 'ready': 1}
+            print("", end='\r')
+            break
         # check if some other character was entered
         else:
-            print("Invalid input")
-            break
+            invalid = True
             # go back to the beginning of the loop
             continue
-    requests.put(address+"agentReady/" + str(i+1))
+    requests.put(address+"agentReady/" + str(i+1), json=data)
 # declares the aruco tracker class
 tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address)
 # starts threads for reading frames, outputing frames, processing frames, and sending data to the server
 tracker.startThreads()
+# checks if all 3 agents are ready and then sets the start flag to true
+prevTime = time.time()
+while True:
+    if (time.time() - prevTime) > 1:
+        prevTime = time.time()
+        req = requests.get(address+"agentReady")
+        DATA = req.json()
+        SUM = 0
+        for i in range(3):
+            SUM += DATA[i]["ready"]
+        if SUM == 3:
+            requests.put(address+"agentGo/1", json={'ready': 1})
+            break
