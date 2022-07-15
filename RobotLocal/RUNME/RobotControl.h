@@ -268,6 +268,7 @@ public:
         serializeJson(req, Serial);
         req.clear();
     }
+    // sets the agents ready status to 1 on the server
     void setReady()
     {
         char address[40];
@@ -282,6 +283,7 @@ public:
         req["ready"] = 1;
         serializeJson(req, Serial);
     }
+    // checks if the system wants the agent to go
     int getReady()
     {
         char address[40];

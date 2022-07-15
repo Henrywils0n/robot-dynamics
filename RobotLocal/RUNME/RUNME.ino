@@ -12,8 +12,8 @@ void loop(void)
   robotA.getPath(1);
   int idx = robotA.pathDoc["id"].as<int>();
   int total = robotA.pathDoc["total"].as<int>();
-  // robotA.localize();
-  // robotA.moveTo(robotA.pathDoc["path"][0][0].as<float>(), robotA.pathDoc["path"][0][1].as<float>());
+  robotA.localize();
+  robotA.moveTo(robotA.pathDoc["path"][0][0].as<float>(), robotA.pathDoc["path"][0][1].as<float>());
   robotA.setReady();
 
   int Ready = 0;

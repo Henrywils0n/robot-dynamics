@@ -25,7 +25,7 @@ if sendPath:
             # format of the json is id (index of the chunk), total (total number of chunks), dt (time between positions), and pos (the position of the target)
             data = {'id': i+1, 'total': numChunks, 'dt': dt, 'path': temp[:, 2*j+1:2*j+3].tolist()}
             resp = requests.put(address+"goal"+str(j+1)+"/"+str(i+1), json=data)
-            # sends a post if there is a 404 because there isnt one with the id
+            # sends a post if there is a 404 because there isnt a field with the id
             if resp.status_code == 404:
                 requests.post(address+"goal"+str(j+1)+"/", json=data)
 
