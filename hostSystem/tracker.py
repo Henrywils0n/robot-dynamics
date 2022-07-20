@@ -3,6 +3,7 @@ import numpy as np
 import time
 import asyncio
 import aiohttp
+import requests
 from ast import Pass
 from threading import Thread
 from webcamvideostream import WebcamVideoStream
@@ -108,12 +109,16 @@ class Tracker:
         cv2.aruco.drawDetectedMarkers(frame, corners, ids)
         # calculating FPS and drawing it onto the frame
         self.endTime = time.perf_counter()
-        dt = (self.endTime - self.startTime).total_seconds()
+        dt = (self.endTime - self.startTime)
         self.startTime = self.endTime
         # preventing division by zero error
         if dt != 0:
             cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
+        # prints data
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
+        print(LINE_UP + LINE_CLEAR + "(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " +
+              format(self.pos[2][1], '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")")
         return frame
 
     # generates task list of put requests for the asyc function
@@ -144,9 +149,12 @@ class Tracker:
         t3 = Thread(target=self.runShowFrame)
         t3.daemon = False
         t3.start()
-        t = Thread(target=self.runPutThread)
-        t.daemon = False
-        t.start()
+        t1 = Thread(target=self.runPutThread)
+        t1.daemon = False
+        t1.start()
+        t4 = Thread(target=self.checkReady)
+        t4.daemon = False
+        t4.start()
         return self
 
     # ends the thread for put requests
@@ -164,13 +172,16 @@ class Tracker:
         prevSentPos = np.copy(self.pos)
         data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
         asyncio.run(self.put_data(data))
+        prevtime = time.perf_counter()
         while(True):
             if self.Stop:
                 return
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            if (np.absolute(self.pos - prevSentPos) > 0.02).any():
+            # time given to prevent needing to compute the difference in positions every time since the ptu requests take about than 0.08 seconds to compute
+            if (time.perf_counter() - prevtime > 0.06) and (np.absolute(self.pos - prevSentPos) > 0.02).any():
                 prevSentPos = np.copy(self.pos)
                 data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
+                prevtime = time.perf_counter()
                 asyncio.run(self.put_data(data))
 
     def runProcessFrame(self):
@@ -196,11 +207,6 @@ class Tracker:
             # shows frame
             if self.vs.grabbed:
                 cv2.imshow('frame', self.outFrame)
-            # prints data
-            LINE_UP = '\033[1A'
-            LINE_CLEAR = '\x1b[2K'
-            print(LINE_UP + LINE_CLEAR + "(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " + format(self.pos[2]
-                  [1], '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")")
             # stops all threads when q is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.stopThread()
@@ -209,3 +215,18 @@ class Tracker:
             if cv2.waitKey(1) & 0xFF == ord('r'):
                 self.originFound = False
         return self
+
+    # checks if all 3 agents are ready and then sets the start flag to true
+    def checkReady(self):
+        prevTime = time.time()
+        while True:
+            if (time.time() - prevTime) > 1:
+                prevTime = time.time()
+                req = requests.get(self.address+"agentReady")
+                DATA = req.json()
+                SUM = 0
+                for i in range(3):
+                    SUM += DATA[i]["ready"]
+                if SUM == 3:
+                    requests.put(self.address+"agentGo/1", json={'ready': 1})
+                    break

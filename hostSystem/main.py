@@ -72,16 +72,3 @@ for i in range(3):
 tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address)
 # starts threads for reading frames, outputing frames, processing frames, and sending data to the server
 tracker.startThreads()
-# checks if all 3 agents are ready and then sets the start flag to true
-prevTime = time.time()
-while True:
-    if (time.time() - prevTime) > 1:
-        prevTime = time.time()
-        req = requests.get(address+"agentReady")
-        DATA = req.json()
-        SUM = 0
-        for i in range(3):
-            SUM += DATA[i]["ready"]
-        if SUM == 3:
-            requests.put(address+"agentGo/1", json={'ready': 1})
-            break
