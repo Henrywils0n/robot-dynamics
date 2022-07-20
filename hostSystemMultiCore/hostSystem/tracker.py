@@ -1,3 +1,4 @@
+from re import L
 import cv2
 import numpy as np
 import time
@@ -5,6 +6,7 @@ import asyncio
 import aiohttp
 from ast import Pass
 from threading import Thread
+from multiprocessing import Process, Pipe, Array
 from webcamvideostream import WebcamVideoStream
 
 
@@ -65,7 +67,7 @@ class Tracker:
             angle += 2*np.pi
         return angle
 
-    def find_markerPos(self, frame):
+    def find_markerPos(self, frame, sharedArray):
         # accepts a frame and locates markers and updates their positions and draws their position and info onto the frame
         # converts to gray scale and finds the aruco markers
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -100,7 +102,10 @@ class Tracker:
                     self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
                     # drawing axis on the markers
                     cv2.aruco.drawAxis(frame, self.mtx, self.dist, Rod, tvec, self.markerWidth)
-        # draws the marker outlines, ids, and position onto the frame
+        # update the shared array with the position of the markers
+        for i in range(self.NUMMARKERS-1):
+            for j in range(3):
+                sharedArray[i*3 + j] = self.pos[i][j]
 
         if self.originFound:
             # draws the axis on the origin marker
@@ -113,73 +118,38 @@ class Tracker:
         # preventing division by zero error
         if dt != 0:
             cv2.putText(frame, "FPS: " + format(1/dt, '.2f'), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
+        print(LINE_UP + LINE_CLEAR + "(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " + format(self.pos[2]
+                                                                                                                                                                                                                   [1], '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")")
         return frame
 
-    # generates task list of put requests for the asyc function
-    def get_tasks(self, session, data):
-        tasks = []
-        for i in range(0, 3):
-            tasks.append(session.put(self.address + 'agents/' + str(i+1), json=data[i]))
-        return tasks
-
-    # async function that sends the data to the server
-
-    async def put_data(self, data):
-        # put the data to the server
-        async with aiohttp.ClientSession() as session:
-            tasks = self.get_tasks(session, data)
-            try:
-                await asyncio.gather(*tasks)
-            except:
-                Pass
-
-    def startThreads(self):
+    def startThreadsandProcesses(self):
         # starts threads for reading in new frames, displaying frames, processing frames, and sending data to the server
         self.Stop = False
+        stopParent, self.stopChild = Pipe(duplex=False)
+        sharedArray = Array('f', range(self.NUMMARKERS * 3))
         self.runGetFrame()
-        t2 = Thread(target=self.runProcessFrame)
+        t1 = Thread(target=self.runProcessFrame, args=(sharedArray,))
+        t1.daemon = False
+        t1.start()
+        t2 = Thread(target=self.runShowFrame)
         t2.daemon = False
         t2.start()
-        t3 = Thread(target=self.runShowFrame)
-        t3.daemon = False
-        t3.start()
-        t = Thread(target=self.runPutThread)
-        t.daemon = False
-        t.start()
+        p = Process(target=self.runSendData, args=(sharedArray, stopParent, self.address))
+        p.daemon = False
+        p.start()
         return self
 
-    # ends the thread for put requests
+    # ends the threads and processes
 
-    def stopThread(self):
+    def stopThreadandProcess(self):
         # stops all threads
         self.Stop = True
         self.vs.stop()
         self.vs.stream.release()
         cv2.destroyAllWindows()
-
-    # calls the async function infinitely in a thread to constantly update the server
-
-    def runPutThread(self):
-        prevSentPos = np.copy(self.pos)
-        data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
-        asyncio.run(self.put_data(data))
-        while(True):
-            if self.Stop:
-                return
-            # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            if (np.absolute(self.pos - prevSentPos) > 0.02).any():
-                prevSentPos = np.copy(self.pos)
-                data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
-                asyncio.run(self.put_data(data))
-
-    def runProcessFrame(self):
-        # finds markers in the most recent frame in a loop
-        while(True):
-            if self.Stop:
-                return
-            if self.vs.grabbed:
-                self.outFrame = self.find_markerPos(self.vs.frame)
+        self.stopChild.send(True)
 
     def runGetFrame(self):
         # initializes the video stream
@@ -197,10 +167,7 @@ class Tracker:
             if self.vs.grabbed:
                 cv2.imshow('frame', self.outFrame)
             # prints data
-            LINE_UP = '\033[1A'
-            LINE_CLEAR = '\x1b[2K'
-            print(LINE_UP + LINE_CLEAR + "(" + format(self.pos[1][0], '.2f') + ", " + format(self.pos[1][1], '.2f') + ", " + format(self.pos[1][2], '.2f') + ")" + "(" + format(self.pos[2][0], '.2f') + ", " + format(self.pos[2]
-                  [1], '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")")
+
             # stops all threads when q is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.stopThread()
@@ -209,3 +176,51 @@ class Tracker:
             if cv2.waitKey(1) & 0xFF == ord('r'):
                 self.originFound = False
         return self
+
+    # calls the async function infinitely in a thread to constantly update the server
+
+    def runProcessFrame(self, sharedArray):
+        # finds markers in the most recent frame in a loop
+        while(True):
+            if self.Stop:
+                return
+            if self.vs.grabbed:
+                self.outFrame = self.find_markerPos(self.vs.frame, sharedArray)
+
+
+# generates task list of put requests for the asyc function
+def get_tasks(session, data, address):
+    tasks = []
+    for i in range(0, 3):
+        tasks.append(session.put(address + 'agents/' + str(i+1), json=data[i]))
+    return tasks
+
+# async function that sends the data to the server
+
+
+async def put_data(data, address):
+    # put the data to the server
+    async with aiohttp.ClientSession() as session:
+        tasks = get_tasks(session, data, address)
+        try:
+            await asyncio.gather(*tasks)
+        except:
+            Pass
+
+
+def putPosProcess(array, stopPipe, address):
+    pos = np.array(array).reshape(3, 3)
+    prevSentPos = np.copy(pos)
+    data = [{'id': 1, 'position': pos[1].tolist()}, {'id': 2, 'position': pos[2].tolist()}, {'id': 3, 'position': pos[3].tolist()}]
+    asyncio.run(put_data(data), address)
+    while(True):
+        if stopPipe.poll():
+            EXIT = stopPipe.recv()
+            if EXIT:
+                return
+        pos = np.array(array).reshape(3, 3)
+        # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
+        if (np.absolute(pos - prevSentPos) > 0.02).any():
+            prevSentPos = np.copy(pos)
+            data = [{'id': 1, 'position': pos[1].tolist()}, {'id': 2, 'position': pos[2].tolist()}, {'id': 3, 'position': pos[3].tolist()}]
+            asyncio.run(put_data(data), address)
