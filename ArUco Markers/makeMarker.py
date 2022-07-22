@@ -1,3 +1,6 @@
+"""
+Code Authored by Keegan Kelly
+"""
 import cv2
 import numpy as np
 import sys

@@ -1,3 +1,6 @@
+"""
+Code Authored by Keegan Kelly
+"""
 import numpy as np
 import cv2
 import glob
