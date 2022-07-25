@@ -53,13 +53,14 @@ class Tracker:
     }
     # constructor that takes the marker width and the aruco type
 
-    def __init__(self, marker_width, aruco_type, address):
+    def __init__(self, marker_width, aruco_type, address, fps=60):
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
         self.arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         self.startTime = time.perf_counter()
         self.address = address
+        self.frameRate = fps
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
@@ -145,7 +146,7 @@ class Tracker:
     def startThreads(self):
         # starts threads for reading in new frames, displaying frames, processing frames, and sending data to the server
         self.Stop = False
-        self.runGetFrame()
+        self.runGetFrame(frameRate=self.frameRate)
         t2 = Thread(target=self.runProcessFrame)
         t2.daemon = False
         t2.start()
@@ -195,20 +196,23 @@ class Tracker:
             if self.vs.grabbed:
                 self.outFrame = self.find_markerPos(self.vs.frame)
 
-    def runGetFrame(self):
+    def runGetFrame(self, frameRate):
         # initializes the video stream
-        self.vs = WebcamVideoStream(src=0).start()
+        self.vs = WebcamVideoStream(src=0, fps=frameRate).start()
         self.vs.start()
         # sets an initial outframe to prevent crashing before the first frame is processed
         self.outFrame = self.vs.frame
 
     def runShowFrame(self):
+        prevTime = time.time()
+        frameDelta = 1/self.frameRate
         while(True):
             # stops loop if thread is stopped
             if self.Stop:
                 return
             # shows frame
             if self.vs.grabbed:
+                prevTime = time.time()
                 cv2.imshow('frame', self.outFrame)
             # stops all threads when q is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -217,6 +221,8 @@ class Tracker:
             # reloads the origin position if r is pressed
             if cv2.waitKey(1) & 0xFF == ord('r'):
                 self.originFound = False
+            sleepTime = frameDelta - (time.time() - prevTime)
+            time.sleep(sleepTime*(sleepTime > 0))
         return self
 
     # checks if all 3 agents are ready and then sets the start flag to true

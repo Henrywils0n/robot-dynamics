@@ -2,13 +2,14 @@
 # import the necessary packages
 from threading import Thread
 import cv2
+import time
 
 
 class WebcamVideoStream:
     def __init__(self, src=0, name="WebcamVideoStream", height=480, width=852, fps=60, focus=0):
         # initialize the camera and properties
         self.stream = cv2.VideoCapture(src, cv2.CAP_DSHOW)
-
+        self.fps = fps
         self.stream.open(src, cv2.CAP_DSHOW)
         self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -35,14 +36,18 @@ class WebcamVideoStream:
         return self
 
     def update(self):
+        frameDelta = 1/self.fps
         # keep looping infinitely until the thread is stopped
         while True:
             # if the thread indicator variable is set, stop the thread
             if self.stopped:
                 return
 
+            prevTime = time.time()
             # otherwise, read the next frame from the stream
             (self.grabbed, self.frame) = self.stream.read()
+            sleepTime = frameDelta - (time.time() - prevTime)
+            time.sleep(sleepTime*(sleepTime > 0))
 
     def read(self):
         # return the frame most recently read
