@@ -6,7 +6,7 @@ import time
 
 
 class WebcamVideoStream:
-    def __init__(self, src=0, name="WebcamVideoStream", height=480, width=852, fps=60, focus=0):
+    def __init__(self, src=0, name="WebcamVideoStream", height=720, width=1280, fps=60, focus=0):
         # initialize the camera and properties
         self.stream = cv2.VideoCapture(src, cv2.CAP_DSHOW)
         self.fps = fps
