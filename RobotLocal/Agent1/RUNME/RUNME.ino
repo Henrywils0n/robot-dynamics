@@ -3,7 +3,7 @@ Code Authored by Keegan Kelly
 */
 #include "RobotControl.h"
 #define id 1
-String server = "http://192.168.0.181:3000";
+String server = "http://192.168.1.2:3000";
 void setup(void)
 {
   Serial.begin(115200);

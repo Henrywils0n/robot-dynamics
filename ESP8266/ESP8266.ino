@@ -6,8 +6,8 @@ Code Authored by Keegan Kelly
 #include <WiFiClient.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "Kelly 2.4";
-const char *password = "6134848186";
+const char *ssid = "RobotTest";
+const char *password = "12345678";
 // connects to the wifi network
 void connectWiFi()
 {

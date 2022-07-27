@@ -181,7 +181,7 @@ class Tracker:
                 return
             # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
             # time given to prevent needing to compute the difference in positions every time since the ptu requests take about than 0.08 seconds to compute
-            if (time.perf_counter() - prevtime > 0.07):
+            if (time.perf_counter() - prevtime > 0.06):
                 data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
                 prevtime = time.perf_counter()
                 asyncio.run(self.put_data(data))
@@ -227,7 +227,7 @@ class Tracker:
     def checkReady(self):
         prevTime = time.time()
         while True:
-            if (time.time() - prevTime) > 1:
+            if (time.time() - prevTime) > 2:
                 prevTime = time.time()
                 req = requests.get(self.address+"agentReady")
                 DATA = req.json()
