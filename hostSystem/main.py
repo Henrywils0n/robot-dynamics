@@ -9,7 +9,7 @@ from math import ceil
 import time
 sendPath = True
 filename = 'testData.xlsx'
-address = 'http://192.168.1.2:3000/'
+address = 'http://192.168.0.100:3000/'
 
 # puts the target positions onto the server
 if sendPath:
