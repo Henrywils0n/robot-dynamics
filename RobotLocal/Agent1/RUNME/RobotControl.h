@@ -102,15 +102,21 @@ public:
             updatePosition();
             currentTime = micros();
             err = sqrt(pow(X - x, 2) + pow(Y - y, 2));
+            // no need to fix the error angle here because it does not need to be in the bounds for the cos function and it will be fixed afterwards
             thetaErr = atan2(Y - y, X - x) - theta;
             // multiplying by the cosine of the angle error to return directionality to the
             // absolute error (this will also cause the robot to drive in reverse and set the speed
             // according to how productive moving forward or backward is)
             directionalErr = err * cos(thetaErr);
             // flips the error by 180 degrees if the robot is driving backwards
+            // angle is fixed here so it is only done once per iteration
             if (directionalErr < 0.0f)
             {
                 thetaErr = fixAngle(thetaErr - pi);
+            }
+            else
+            {
+                thetaErr = fixAngle(thetaErr);
             }
             // PID control for the linear and angular velocity
             derivative = (directionalErr - prevDirectionalErr) / (currentTime - prevTime) * 1000000;

@@ -32,12 +32,17 @@ void loop(void)
     Serial.println(len);
     for (int i = 0; i < len; i++)
     {
+      float prevTime = millis();
       int success = 0;
       while (!success)
       {
         success = robotA.localize();
       }
       robotA.moveTo(robotA.pathDoc["path"][i][0].as<float>(), robotA.pathDoc["path"][i][1].as<float>());
+      while ((millis() - prevTime) * 0.001 < robotA.pathDoc["dt"].as<float>())
+      {
+        // do nothing until next time step
+      }
     }
     idx++;
   }
