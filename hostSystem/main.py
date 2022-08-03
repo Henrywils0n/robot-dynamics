@@ -11,11 +11,11 @@ sendPath = True
 filename = 'testData.xlsx'
 address = 'http://192.168.0.100:3000/'
 # prompt user for if they are using a fisheye lens
-fisheye = input('Is the lens a fisheye lens? (y/n): ')
-if fisheye == 'y' or fisheye == 'Y':
-    fisheye = True
-elif fisheye == 'n' or fisheye == 'N':
-    fisheye = False
+wideAngle = input('Is the lens a wide angle lens (120 fov)? (y/n): ')
+if wideAngle == 'y' or wideAngle == 'Y':
+    wideAngle = True
+elif wideAngle == 'n' or wideAngle == 'N':
+    wideAngle = False
 
 # puts the target positions onto the server
 if sendPath:
@@ -78,6 +78,6 @@ for i in range(3):
             continue
     requests.put(address+"agentReady/" + str(i+1), json=data)
 # declares the aruco tracker class
-tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address, fisheye=fisheye)
+tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address, wideAngle=wideAngle)
 # starts threads for reading frames, outputing frames, processing frames, and sending data to the server
 tracker.startThreads()

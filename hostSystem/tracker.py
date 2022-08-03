@@ -53,7 +53,7 @@ class Tracker:
     }
     # constructor that takes the marker width and the aruco type
 
-    def __init__(self, marker_width, aruco_type, address, fps=60, fisheye=False):
+    def __init__(self, marker_width, aruco_type, address, fps=60, wideAngle=False):
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
@@ -61,9 +61,9 @@ class Tracker:
         self.startTime = time.perf_counter()
         self.address = address
         self.frameRate = fps
-        self.fishEye = fisheye
-        if self.fishEye:
-            npfile = np.load("fisheyeCalibration.npz")
+        self.wideAgnle = wideAngle
+        if self.wideAgnle:
+            npfile = np.load("wideAngleCalibration.npz")
             self.mtx = npfile["mtx"]
             self.dist = npfile["dist"]
 
@@ -201,8 +201,8 @@ class Tracker:
                 self.outFrame = self.find_markerPos(self.vs.frame)
 
     def runGetFrame(self, frameRate):
-        if self.fishEye:
-            Focus = 30
+        if self.wideAgnle:
+            Focus = 20
         else:
             Focus = 0
         # initializes the video stream
