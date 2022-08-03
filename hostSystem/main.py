@@ -10,7 +10,12 @@ import time
 sendPath = True
 filename = 'testData.xlsx'
 address = 'http://192.168.0.100:3000/'
-fisheye = True
+# prompt user for if they are using a fisheye lens
+fisheye = input('Is the lens a fisheye lens? (y/n): ')
+if fisheye == 'y' or fisheye == 'Y':
+    fisheye = True
+elif fisheye == 'n' or fisheye == 'N':
+    fisheye = False
 
 # puts the target positions onto the server
 if sendPath:

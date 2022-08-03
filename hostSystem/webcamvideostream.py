@@ -16,7 +16,7 @@ class WebcamVideoStream:
         self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         # lower focus focuses further away from the camera
-        focus = 0  # min: 0, max: 255, increment:5
+        # focus min: 0, max: 255, increment:5
         self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.stream.set(cv2.CAP_PROP_FOCUS, focus)
         self.stream.set(cv2.CAP_PROP_FPS, fps)

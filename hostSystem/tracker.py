@@ -80,8 +80,8 @@ class Tracker:
 
     def find_markerPos(self, frame):
         # accepts a frame and locates markers and updates their positions and draws their position and info onto the frame
-        if self.fishEye:
-            frame = cv2.remap(frame, self.map1, self.map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
+        # if self.fishEye:
+        #   frame = cv2.remap(frame, self.map1, self.map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
         # converts to gray scale and finds the aruco markers
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
@@ -206,8 +206,12 @@ class Tracker:
                 self.outFrame = self.find_markerPos(self.vs.frame)
 
     def runGetFrame(self, frameRate):
+        if self.fishEye:
+            Focus = 30
+        else:
+            Focus = 0
         # initializes the video stream
-        self.vs = WebcamVideoStream(src=0, fps=frameRate).start()
+        self.vs = WebcamVideoStream(src=0, fps=frameRate, focus=Focus).start()
         self.vs.start()
         # sets an initial outframe to prevent crashing before the first frame is processed
         self.outFrame = self.vs.frame
