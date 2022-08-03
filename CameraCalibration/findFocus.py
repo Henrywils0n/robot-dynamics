@@ -18,9 +18,7 @@ while 1:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
     # get input from user and set the focus
-    """
-    time.sleep(1)
-    i += 1
+    i += 5
     cap.set(cv2.CAP_PROP_FOCUS, i)
     print("Focus is set to: " + str(i))
-    """
+    time.sleep(1)

@@ -66,9 +66,6 @@ class Tracker:
             npfile = np.load("fisheyeCalibration.npz")
             self.mtx = npfile["mtx"]
             self.dist = npfile["dist"]
-            self.newMtx = npfile["newMtx"]
-            self.R = npfile["R"]
-            self.map1, self.map2 = cv2.fisheye.initUndistortRectifyMap(self.mtx, self.dist, self.R, self.newMtx, (1280, 720), cv2.CV_16SC2)
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
@@ -80,8 +77,6 @@ class Tracker:
 
     def find_markerPos(self, frame):
         # accepts a frame and locates markers and updates their positions and draws their position and info onto the frame
-        # if self.fishEye:
-        #   frame = cv2.remap(frame, self.map1, self.map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
         # converts to gray scale and finds the aruco markers
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
