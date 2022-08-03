@@ -2,18 +2,16 @@
 Code Authored by Keegan Kelly
 */
 #include "RobotControl.h"
-#define id 1
+#define id 3
 String server = "http://192.168.0.100:3000";
 void setup(void)
 {
   Serial.begin(115200);
 }
 
-Robot robotA(0, 0, pi / 2, id, server);
-
 void loop(void)
 {
-
+  Robot robotA(0, 0, pi / 2, id, server);
   robotA.getPath(1);
   int idx = robotA.pathDoc["id"].as<int>();
   int total = robotA.pathDoc["total"].as<int>();

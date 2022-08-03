@@ -1,6 +1,6 @@
 {
-    "port": "COM4",
+    "port": "COM3",
     "board": "arduino:avr:uno",
     "programmer": "arduino:arduinoisp",
-    "sketch": "RobotLocal\\Agent1\\RUNME\\RUNME.ino"
+    "sketch": "RobotLocal\\Agent2\\RUNME\\RUNME.ino"
 }

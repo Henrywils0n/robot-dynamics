@@ -10,6 +10,7 @@ import time
 sendPath = True
 filename = 'testData.xlsx'
 address = 'http://192.168.0.100:3000/'
+fisheye = True
 
 # puts the target positions onto the server
 if sendPath:
@@ -72,6 +73,6 @@ for i in range(3):
             continue
     requests.put(address+"agentReady/" + str(i+1), json=data)
 # declares the aruco tracker class
-tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address)
+tracker = Tracker(marker_width=0.1585, aruco_type="DICT_4X4_1000", address=address, fisheye=fisheye)
 # starts threads for reading frames, outputing frames, processing frames, and sending data to the server
 tracker.startThreads()

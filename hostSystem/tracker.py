@@ -53,7 +53,7 @@ class Tracker:
     }
     # constructor that takes the marker width and the aruco type
 
-    def __init__(self, marker_width, aruco_type, address, fps=60):
+    def __init__(self, marker_width, aruco_type, address, fps=60, fisheye=False):
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
@@ -61,6 +61,14 @@ class Tracker:
         self.startTime = time.perf_counter()
         self.address = address
         self.frameRate = fps
+        self.fishEye = fisheye
+        if self.fishEye:
+            npfile = np.load("fisheyeCalibration.npz")
+            self.mtx = npfile["mtx"]
+            self.dist = npfile["dist"]
+            self.newMtx = npfile["newMtx"]
+            self.R = npfile["R"]
+            self.map1, self.map2 = cv2.fisheye.initUndistortRectifyMap(self.mtx, self.dist, self.R, self.newMtx, (1280, 720), cv2.CV_16SC2)
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
@@ -72,9 +80,12 @@ class Tracker:
 
     def find_markerPos(self, frame):
         # accepts a frame and locates markers and updates their positions and draws their position and info onto the frame
+        if self.fishEye:
+            frame = cv2.remap(frame, self.map1, self.map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
         # converts to gray scale and finds the aruco markers
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
+
         # ads the corners to the dictionary if they are detected
         if len(corners) > 0:
             ids.flatten()

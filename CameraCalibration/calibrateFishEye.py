@@ -3,6 +3,7 @@ import cv2
 import glob
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + cv2.fisheye.CALIB_CHECK_COND + cv2.fisheye.CALIB_FIX_SKEW
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((7*4, 3), np.float32)
 objp[:, :2] = np.mgrid[0:7, 0:4].T.reshape(-1, 2)
@@ -25,11 +26,25 @@ for fname in images:
         corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
         imgpoints.append(corners)
         # Draw and display the corners
-        cv2.drawChessboardCorners(img, (7, 4), corners2, ret)
+        #cv2.drawChessboardCorners(img, (7, 4), corners2, ret)
         #cv2.imshow('img', img)
         # cv2.waitKey(500)
 cv2.destroyAllWindows()
-print(goodImages)
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-print("Camera matrix: \n", mtx)
-np.savez('calibration.npz', mtx=mtx, dist=dist)
+N_imm = goodImages
+K = np.zeros((3, 3))
+D = np.zeros((4, 1))
+rvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_imm)]
+tvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_imm)]
+retval, K, D, rvecs, tvecs = cv2.fisheye.calibrate(
+    objpoints,
+    imgpoints,
+    gray.shape[::-1],
+    K,
+    D,
+    rvecs,
+    tvecs,
+    calibration_flags,
+    (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6))
+# estimateNewCameraMatrixForUndistortRectify
+newK = cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(K, D, gray.shape[::-1], np.eye(3), balance=1.0)
+np.savez('fisheyeCalibration.npz', mtx=K, dist=D, newMtx=newK, R=np.eye(3))
