@@ -245,5 +245,5 @@ class Tracker:
                 for i in range(3):
                     SUM += DATA[i]["ready"]
                 if SUM == 3:
-                    requests.put(self.address+"agentGo/1", json={'ready': 1})
+                    requests.put(self.address+"agentGo/1", json={'id': 1, 'ready': 1})
                     break
