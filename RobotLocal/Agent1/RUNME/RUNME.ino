@@ -7,6 +7,7 @@ String server = "http://192.168.0.100:3000";
 void setup(void)
 {
   Serial.begin(115200);
+  delay(2000);
 }
 
 Robot robotA(0, 0, pi / 2, id, server);

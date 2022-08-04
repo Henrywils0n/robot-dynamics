@@ -317,6 +317,7 @@ public:
                 // if the data is not valid try again until it is
                 if (error != DeserializationError::Ok)
                 {
+                    doc.clear();
                     return 0;
                 }
                 else if (doc["ready"] == 1)
@@ -335,9 +336,9 @@ public:
 
 private:
     // radius of the wheels
-    float r = 0.033;
+    float r = 0.033 * 1.2;
     // wheel base of the robot
-    float WB = 0.164 * 0.91f;
+    float WB = 0.164 * 0.80f;
     // calibration factor to convert encoder ticks to distance
     float CL = pi / 384.0f * r;
     float CR = pi / 384.0f * r;
