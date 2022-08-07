@@ -55,7 +55,7 @@ public:
     int id;
     // address of the server
     char serverAddress[30] = {};
-    StaticJsonDocument<400> pathDoc;
+    StaticJsonDocument<450> pathDoc;
     // sets up required pin modes and objects
     Robot(float X, float Y, float THETA, int ID, String address)
     {
@@ -192,18 +192,18 @@ public:
         strcat(address, tempChar);
         // sends the address of the get request to the ESP8266
         // doc size determined by this int BUFFER_SIZE = JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(0); where object is the number of key value pairs and array size is the number of elements in the array
-        StaticJsonDocument<80> req;
+        StaticJsonDocument<130> req;
         req["type"] = "GET";
         req["address"] = address;
         serializeJson(req, Serial);
+        req.clear();
         // waits for the ESP8266 to send the data
         while (1)
         {
             if (Serial.available())
             {
                 // loads the data into the json document
-                StaticJsonDocument<130> doc;
-                DeserializationError error = deserializeJson(doc, Serial);
+                DeserializationError error = deserializeJson(req, Serial);
                 // if the data is not valid try again until it is
                 if (error != DeserializationError::Ok)
                 {
@@ -211,10 +211,10 @@ public:
                 }
                 else
                 {
-                    x = doc["position"][0];
-                    y = doc["position"][1];
-                    theta = doc["position"][2];
-                    doc.clear();
+                    x = req["position"][0];
+                    y = req["position"][1];
+                    theta = req["position"][2];
+                    req.clear();
                     clearLeftEncoder();
                     clearRightEncoder();
                     return 1;
@@ -225,17 +225,18 @@ public:
 
     void getPath(int idx)
     {
-        char address[34];
+        char address[40];
         strcpy(address, serverAddress);
         strcat(address, "/goal");
         char tempChar[4] = {id + '0', '/', idx + '0', '\0'};
         strcat(address, tempChar);
         // sends the address of the get request to the ESP8266
         // doc size determined by this int BUFFER_SIZE = JSON_OBJECT_SIZE(2) + JSON_ARRAY_SIZE(0); where object is the number of key value pairs and array size is the number of elements in the array
-        StaticJsonDocument<80> req;
+        StaticJsonDocument<90> req;
         req["type"] = "GET";
         req["address"] = address;
         serializeJson(req, Serial);
+        pathDoc.clear();
         // waits for the ESP8266 to send the data
         while (1)
         {
@@ -266,7 +267,7 @@ public:
         char tempChar[2] = {id + '0', '\0'};
 
         // sends the address of the get request to the ESP8266
-        StaticJsonDocument<56> req;
+        StaticJsonDocument<80> req;
 
         req["type"] = "PUT";
         req["address"] = address;
@@ -292,6 +293,7 @@ public:
         req["id"] = id;
         req["ready"] = 1;
         serializeJson(req, Serial);
+        req.clear();
     }
     // checks if the system wants the agent to go
     int getReady()
@@ -299,34 +301,33 @@ public:
         char address[40];
         strcpy(address, serverAddress);
         strcat(address, "/agentGo/");
-        char tempChar[2] = {'1', '\0'};
+        char tempChar[2] = {id + '0', '\0'};
         strcat(address, tempChar);
-        StaticJsonDocument<56> req;
+        StaticJsonDocument<80> req;
         req["type"] = "GET";
         req["address"] = address;
-        req["id"] = id;
         serializeJson(req, Serial);
+        req.clear();
         // waits for the ESP8266 to send the data
         while (1)
         {
             if (Serial.available())
             {
                 // loads the data into the json document
-                StaticJsonDocument<130> doc;
-                DeserializationError error = deserializeJson(doc, Serial);
+                DeserializationError error = deserializeJson(req, Serial);
                 // if the data is not valid try again until it is
                 if (error != DeserializationError::Ok)
                 {
                     return 0;
                 }
-                else if (doc["ready"] == 1)
+                else if (req["ready"] == 1)
                 {
-                    doc.clear();
+                    req.clear();
                     return 1;
                 }
                 else
                 {
-                    doc.clear();
+                    req.clear();
                     return 0;
                 }
             }

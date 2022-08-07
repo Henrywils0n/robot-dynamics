@@ -30,7 +30,10 @@ void loop(void)
 
   while (idx <= total)
   {
-    robotA.getPath(idx);
+    if (idx != 1)
+    {
+      robotA.getPath(idx);
+    }
     int len = robotA.pathDoc["path"].size();
     Serial.println(len);
     for (int i = 0; i < len; i++)

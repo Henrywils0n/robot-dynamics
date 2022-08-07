@@ -50,7 +50,8 @@ if sendPath:
             else:
                 requests.delete(address+"goal"+str(i+1)+"/"+str(j+1))
                 j += 1
-requests.put(address+"agentGo/1", json={'id': 1, 'ready': 0})
+for i in range(3):
+    requests.put(address+"agentGo/"+str(int(i)), json={'id': i, 'ready': 0})
 # prompt the user to ask if each agent is being used
 for i in range(3):
     invalid = False

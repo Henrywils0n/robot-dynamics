@@ -1,23 +1,9 @@
-import cv2
+from flask import jsonify
 import numpy as np
-# import the mtx from fisheyeCalibration.npz and then correct the image from the webcam
-mtx = np.load('fisheyeCalibration.npz')['mtx']
-dist = np.load('fisheyeCalibration.npz')['dist']
-# import the image from the webcam
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-# set focus to 30
-cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-cap.set(cv2.CAP_PROP_FOCUS, 30)
-# set res to 720p
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-while(True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    # undistort the image
-    undistorted = cv2.undistort(frame, mtx, dist, None, mtx)
-    # Display the resulting frame
-    cv2.imshow('frame', undistorted)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+import requests
+
+address = "http://192.168.0.181:3000/agents?id=1,2,3"
+agentPos = np.zeros((3, 3))
+data = [{"id": 1, "position": agentPos[0, :]}, {"id": 2, "position": agentPos[1, :]}, {"id": 3, "position": agentPos[2, :]}]
+# make a put request to update the position all 3 agents
+req = requests.put(address, data=data)
