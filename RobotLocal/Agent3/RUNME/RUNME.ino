@@ -10,9 +10,10 @@ void setup(void)
   delay(2000);
 }
 
+Robot robotA(0, 0, pi / 2, id, server);
+
 void loop(void)
 {
-  Robot robotA(0, 0, pi / 2, id, server);
   robotA.getPath(1);
   int idx = robotA.pathDoc["id"].as<int>();
   int total = robotA.pathDoc["total"].as<int>();
@@ -28,7 +29,10 @@ void loop(void)
 
   while (idx <= total)
   {
-    robotA.getPath(idx);
+    if (idx != 1)
+    {
+      robotA.getPath(idx);
+    }
     int len = robotA.pathDoc["path"].size();
     Serial.println(len);
     for (int i = 0; i < len; i++)

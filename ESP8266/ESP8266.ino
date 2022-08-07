@@ -24,6 +24,7 @@ void GET(String address)
   // connects to server
   WiFiClient client;
   HTTPClient http;
+  http.setTimeout(5000);
   http.begin(client, address);
   // makes request
   int httpCode = http.GET();
@@ -53,6 +54,7 @@ void PUT(String address, String payload)
   // connects to server
   WiFiClient client;
   HTTPClient http;
+  http.setTimeout(1000);
   http.begin(client, address);
   // makes request
   http.addHeader("Content-Type", "application/json");
