@@ -15,7 +15,7 @@ Robot robotA(0, 0, pi / 2, id, server);
 void loop(void)
 {
   robotA.getPath(1);
-  int idx = robotA.pathDoc["id"].as<int>();
+  int idx = 1;
   int total = robotA.pathDoc["total"].as<int>();
   robotA.localize();
   robotA.moveTo(robotA.pathDoc["path"][0][0].as<float>(), robotA.pathDoc["path"][0][1].as<float>());

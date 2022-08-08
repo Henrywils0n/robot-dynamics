@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify, url_for, redirect
 import json
 import atexit
+from waitress import serve
+import numpy as np
+import logging
 
 
 app = Flask(__name__)
 app.config["DEBUG"] = False
+
 
 # open import and close db.json
 readFile = open("db.json", 'r')
@@ -65,7 +69,6 @@ def agentsLocalReq(id):
 @app.route("/agentReady/<id>", methods=["GET", "PUT"])
 def agentReadyReq(id):
     id = int(id)
-    print(id)
     if request.method == "GET":
         if id > 0 and id <= len(data["agentReady"]):
             return jsonify(data["agentReady"][id-1])
@@ -88,10 +91,10 @@ def agentReadyNoIDReq():
 def agentGoReq(id):
     id = int(id)
     if request.method == "GET":
-        if id == 1:
+        if 0 < id and id < 4:
             return jsonify(data["agentGo"][id-1])
     if request.method == "PUT":
-        if id == 1:
+        if 0 < id and id < 4:
             data["agentGo"][id-1] = request.json
             return jsonify(data["agentGo"][id-1])
 
@@ -196,5 +199,19 @@ def goal3Req(id):
             # return a 404 error
             return "", 404
 
+# route for accepting 3 by 3 position array and splitting it to the 3 agents
 
-app.run(host="192.168.0.100", port=3000, debug=False)
+
+@app.route("/allPos/1", methods=["PUT"])
+def allPos():
+    if request.method == "PUT":
+        data["allPos"] = request.json
+        pos = np.array(request.json["pos"])
+        for i in range(3):
+            data["agents"][i]["position"] = pos[i, :].tolist()
+        return jsonify(data["allPos"])
+
+
+# use this for debugging (if you need to print the requests) (not as fast as using waitress)
+#app.run(host="192.168.0.10", port=3000, debug=False, threaded=False, processes=3)
+serve(app, host="192.168.0.100", port=3000, threads=6)

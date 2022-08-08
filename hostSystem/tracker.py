@@ -4,8 +4,6 @@ Code authored by Keegan Kelly
 import cv2
 import numpy as np
 import time
-import asyncio
-import aiohttp
 import requests
 from ast import Pass
 from threading import Thread
@@ -131,24 +129,6 @@ class Tracker:
               format(self.pos[2][1], '.2f') + ", " + format(self.pos[2][2], '.2f') + ")" + "(" + format(self.pos[3][0], '.2f') + ", " + format(self.pos[3][1], '.2f') + ", " + format(self.pos[3][2], '.2f') + ")")
         return frame
 
-    # generates task list of put requests for the asyc function
-    def get_tasks(self, session, data):
-        tasks = []
-        for i in range(0, 3):
-            tasks.append(session.put(self.address + 'agents/' + str(i+1), json=data[i]))
-        return tasks
-
-    # async function that sends the data to the server
-
-    async def put_data(self, data):
-        # put the data to the server
-        async with aiohttp.ClientSession() as session:
-            tasks = self.get_tasks(session, data)
-            try:
-                await asyncio.gather(*tasks)
-            except:
-                Pass
-
     def startThreads(self):
         # starts threads for reading in new frames, displaying frames, processing frames, and sending data to the server
         self.Stop = False
@@ -179,18 +159,12 @@ class Tracker:
     # calls the async function infinitely in a thread to constantly update the server
 
     def runPutThread(self):
-        data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
-        asyncio.run(self.put_data(data))
-        prevtime = time.perf_counter()
-        while(True):
-            if self.Stop:
-                return
-            # threshold on difference in positions to stop excess put requests (the 3cm/0.03rad is just above the noise level)
-            # time given to prevent needing to compute the difference in positions every time since the ptu requests take about than 0.08 seconds to compute
-            if (time.perf_counter() - prevtime > 0.1):
-                data = [{'id': 1, 'position': self.pos[1].tolist()}, {'id': 2, 'position': self.pos[2].tolist()}, {'id': 3, 'position': self.pos[3].tolist()}]
-                prevtime = time.perf_counter()
-                asyncio.run(self.put_data(data))
+        prevTime = time.time()
+        while not self.Stop:
+            if (time.time() - prevTime) > 0.05:
+                prevTime = time.time()
+                data = {"id": 1, "pos": self.pos[1:].tolist()}
+                requests.put(self.address + "allPos/1", json=data)
 
     def runProcessFrame(self):
         # finds markers in the most recent frame in a loop
@@ -246,5 +220,5 @@ class Tracker:
                     SUM += DATA[i]["ready"]
                 if SUM == 3:
                     for i in range(3):
-                        requests.put(self.address+"agentGo/"+str(int(i)), json={'id': i, 'ready': 1})
+                        requests.put(self.address+"agentGo/"+str(int(i+1)), json={'id': i+1, 'ready': 1})
                     break
