@@ -8,7 +8,7 @@ import numpy as np
 from math import ceil
 import time
 sendPath = True
-filename = 'agentData.xlsx'
+filename = 'xlsxPaths/agentData.xlsx'
 address = 'http://192.168.0.100:3000/'
 # prompt user for if they are using a fisheye lens
 wideAngle = input('Is the lens a wide angle lens (120 fov)? (y/n): ')
