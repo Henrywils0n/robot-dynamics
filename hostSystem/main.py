@@ -8,7 +8,7 @@ import numpy as np
 from math import ceil
 import time
 sendPath = True
-filename = 'testData.xlsx'
+filename = 'agentData.xlsx'
 address = 'http://192.168.0.100:3000/'
 # prompt user for if they are using a fisheye lens
 wideAngle = input('Is the lens a wide angle lens (120 fov)? (y/n): ')
@@ -19,7 +19,7 @@ elif wideAngle == 'n' or wideAngle == 'N':
 
 # puts the target positions onto the server
 if sendPath:
-    df = pd.read_excel('testData.xlsx')
+    df = pd.read_excel(filename)
     allPos = df.to_numpy()
     dt = allPos[1, 0] - allPos[0, 0]
     # split the arrays into chunks of size 15
