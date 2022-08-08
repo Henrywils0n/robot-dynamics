@@ -34,14 +34,17 @@ void loop(void)
       robotA.getPath(idx);
     }
     int len = robotA.pathDoc["path"].size();
-    Serial.println(len);
+    int update = robotA.pathDoc["update"].as<int>();
     for (int i = 0; i < len; i++)
     {
       float prevTime = millis();
       int success = 0;
-      while (!success)
+      if (i % update == 0)
       {
-        success = robotA.localize();
+        while (!success)
+        {
+          success = robotA.localize();
+        }
       }
       robotA.moveTo(robotA.pathDoc["path"][i][0].as<float>(), robotA.pathDoc["path"][i][1].as<float>());
       while ((millis() - prevTime) * 0.001 < robotA.pathDoc["dt"].as<float>())
