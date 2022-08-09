@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from math import ceil
 import time
-filename = 'xlsxPaths/flocking2.xlsx'
+filename = 'xlsxPaths/formation2.xlsx'
 address = 'http://192.168.0.100:3000/'
 # prompt user for if they are using a fisheye lens
 invalid = False
@@ -18,6 +18,7 @@ while (True):
         wideAngle = input('Is the lens a wide angle lens (120 fov)? (y/n): ')
     LINE_UP = '\033[1A'
     LINE_CLEAR = '\x1b[2K'
+    print(LINE_UP, end=LINE_CLEAR)
     if wideAngle == 'y' or wideAngle == 'Y':
         wideAngle = True
         break
@@ -37,8 +38,9 @@ while (True):
         updateRate = input('After how many movements should the robots localize? (1-5): ')
     LINE_UP = '\033[1A'
     LINE_CLEAR = '\x1b[2K'
-    print(LINE_CLEAR, end=LINE_UP)
+    print(LINE_UP, end=LINE_CLEAR)
     if len(updateRate) == 1 and ord(updateRate) >= 49 and ord(updateRate) <= 53:
+        updateRate = int(updateRate)
         break
     else:
         invalid = True
