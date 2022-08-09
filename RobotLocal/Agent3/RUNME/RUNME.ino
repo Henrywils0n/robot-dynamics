@@ -54,5 +54,5 @@ void loop(void)
     }
     idx++;
   }
-  delay(5000);
+  delay(500000);
 }
