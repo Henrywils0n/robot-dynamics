@@ -128,7 +128,7 @@ public:
             prevThetaErr = thetaErr;
             // sets the linear and angular velocity
             // modifier constants are added to adjust total speeds because the gains are tuned relative to eachother and the constant will just adjust the total speed (if you increase the linear velocity angular does not need to be adjusted by the same amount since they are independent but if its moving a lot faster it might need to turn a bit more aggressively)
-            float v = 2.0f * Kp * directionalErr + Ki * integral + Kd * derivative;
+            float v = 1.8f * Kp * directionalErr + Ki * integral + Kd * derivative;
             float w = KpTheta * thetaErr + KiTheta * integralTheta + KdTheta * derivativeTheta;
             // sets the speed of the robot
             drive(v, w);
