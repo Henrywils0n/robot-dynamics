@@ -188,7 +188,7 @@ class Tracker:
     def runShowFrame(self):
         prevTime = time.time()
         frameDelta = 1/self.frameRate
-        output = cv2.VideoWriter("formation2.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
+        output = cv2.VideoWriter("flocking2.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
         while(True):
             # stops loop if thread is stopped
             if self.Stop:
