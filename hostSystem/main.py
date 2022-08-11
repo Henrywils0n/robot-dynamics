@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from math import ceil
 import time
-filename = 'xlsxPaths/flocking2.xlsx'
+filename = 'xlsxPaths/testData.xlsx'
 address = 'http://192.168.0.100:3000/'
 # prompt user for if they are using a fisheye lens
 invalid = False
