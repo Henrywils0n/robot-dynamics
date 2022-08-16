@@ -156,7 +156,7 @@ class Tracker:
         self.vs.stream.release()
         cv2.destroyAllWindows()
 
-    # calls the async function infinitely in a thread to constantly update the server
+    # sends a put request to the server with the locations of all markers at a poll rate of 20Hz
 
     def runPutThread(self):
         prevTime = time.time()
