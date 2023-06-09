@@ -1,23 +1,22 @@
-"""
-Code authored by Keegan Kelly
-"""
 from tracker import Tracker
 import requests
 import pandas as pd
 import numpy as np
 from math import ceil
 import time
+
 filename = 'xlsxPaths/testData.xlsx'
 address = 'http://192.168.0.100:3000/'
+LINE_UP = '\033[1A'
+LINE_CLEAR = '\x1b[2K'
 # prompt user for if they are using a fisheye lens
 invalid = False
-while (True):
-    if invalid == True:
-        input("Invalid input. Is the lens a wide angle lens (120 fov)? (y/n): ")
+while True:
+    if invalid:
+        wideAngle = input("Invalid input. Is the lens a wide angle lens (120 fov)? (y/n): ")
     else:
         wideAngle = input('Is the lens a wide angle lens (120 fov)? (y/n): ')
-    LINE_UP = '\033[1A'
-    LINE_CLEAR = '\x1b[2K'
+
     print(LINE_UP, end=LINE_CLEAR)
     if wideAngle == 'y' or wideAngle == 'Y':
         wideAngle = True
@@ -27,24 +26,21 @@ while (True):
         break
     else:
         invalid = True
-        continue
 
 # prompt user for how often they want robots to localize (update every x positions in the path)
 invalid = False
-while (True):
-    if invalid == True:
+while True:
+    if invalid:
         updateRate = input("Invalid input. After how many movements should the robots localize? (1-5): ")
     else:
         updateRate = input('After how many movements should the robots localize? (1-5): ')
-    LINE_UP = '\033[1A'
-    LINE_CLEAR = '\x1b[2K'
+
     print(LINE_UP, end=LINE_CLEAR)
-    if len(updateRate) == 1 and ord(updateRate) >= 49 and ord(updateRate) <= 53:
+    if len(updateRate) == 1 and 49 <= ord(updateRate) <= 53:
         updateRate = int(updateRate)
         break
     else:
         invalid = True
-        continue
 
 # puts the target positions onto the server
 df = pd.read_excel(filename)
@@ -58,8 +54,8 @@ for i in range(numChunks):
     temp = allPos[i]
 
     for j in range(3):
-        # posts the sub array
-        # format of the json is id (index of the chunk), total (total number of chunks), dt (time between positions), and pos (the position of the target)
+        # posts the sub array format of the json is id (index of the chunk), total (total number of chunks),
+        # dt (time between positions), and pos (the position of the target)
         data = {'id': i+1, 'total': numChunks, 'dt': dt, 'update': updateRate, 'path': temp[:, 2*j+1:2*j+3].tolist()}
         resp = requests.put(address+"goal"+str(j+1)+"/"+str(i+1), json=data)
         # sends a post if there is a 404 because there isnt a field with the id
@@ -70,7 +66,8 @@ for i in range(numChunks):
 for i in range(3):
     j = numChunks
     while True:
-        # HEAD request returns the header from if a GET request is made. If it the code is 404 then there is no data on the server
+        # HEAD request returns the header from if a GET request is made. If it the code is 404 then there is no data
+        # on the server
         resp = requests.head(address+"goal"+str(i+1)+"/"+str(j+1))
         if resp.status_code == 404:
             break
@@ -90,8 +87,6 @@ for i in range(3):
             Input = input("Invalid input, try again. Is agent " + str(i+1) + " being used? (y/n): ")
         else:
             Input = input("Is agent " + str(i+1) + " being used? (y/n): ")
-        LINE_UP = '\033[1A'
-        LINE_CLEAR = '\x1b[2K'
         if i < 2:
             print(LINE_UP, end=LINE_CLEAR)
         if Input == 'y' or Input == 'Y':

@@ -1,6 +1,3 @@
-"""
-Code authored by Keegan Kelly
-"""
 import cv2
 import numpy as np
 import time
@@ -12,7 +9,7 @@ from webcamvideostream import WebcamVideoStream
 
 class Tracker:
     # importing the camera matrix and distortion coefficients
-    # if the file path is working get rid of the folder or add a non relative path
+    # if the file path is working get rid of the folder or add a non-relative path
     npfile = np.load("calibration.npz")
     mtx = npfile["mtx"]
     dist = npfile["dist"]
@@ -67,15 +64,15 @@ class Tracker:
 
     def fixAngle(self, angle):
         # return an angle to -pi and pi
-        while(angle > np.pi):
+        while angle > np.pi:
             angle -= 2*np.pi
-        while(angle < -np.pi):
+        while angle < -np.pi:
             angle += 2*np.pi
         return angle
 
     def find_markerPos(self, frame):
-        # accepts a frame and locates markers and updates their positions and draws their position and info onto the frame
-        # converts to gray scale and finds the aruco markers
+        # accepts a frame and locates markers and updates their positions and draws their position and info onto the
+        # frame converts to gray scale and finds the aruco markers
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         (corners, ids, rejectedImgPoints) = cv2.aruco.detectMarkers(gray, self.arucoDict, parameters=self.arucoParams)
 
@@ -84,9 +81,12 @@ class Tracker:
             ids.flatten()
             for i in range(len(ids)):
                 self.Corners[ids[i][0]] = corners[i]
-        # only calculates position if the origin is found. Backup condition if the origin id has found markers because the origin will be marked as found inside the loop (second condition isn't checked if first condition is true)
+        # only calculates position if the origin is found. Backup condition if the origin id has found markers
+        # because the origin will be marked as found inside the loop (second condition isn't checked if first
+        # condition is true)
         if self.originFound or len(self.Corners[10]) != 0:
-            # locates the position of the origin marker only once to eliminate a bit of noise (if camera is not rigid and it moves this should be changed)
+            # locates the position of the origin marker only once to eliminate a bit of noise (if camera is not rigid
+            # and it moves this should be changed)
             if not self.originFound:
                 # gets the rotation and translation vector of the origin marker
                 self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
@@ -99,11 +99,14 @@ class Tracker:
                 if len(self.Corners[10+i]) != 0:
                     # finds marker position in the camera reference frame
                     rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[i+10], self.markerWidth, self.mtx, self.dist)
-                    # finds the difference in position between the origin and the marker and rotates it to the origin reference frame
+                    # finds the difference in position between the origin and the marker and rotates it to the origin
+                    # reference frame
                     position = np.matmul(self.rodrigues, tvec[0][0]-self.originT[0][0])
                     # rotation matrix of the marker
                     Rod = cv2.Rodrigues(rvec[0][0])[0]
-                    # multiply the rotation matrix of the marker with the rotation matrix of the origin and convert it back to a rotation vector. R_Z is the heading and the heading of the origin marker is added to the heading
+                    # multiply the rotation matrix of the marker with the rotation matrix of the origin and convert
+                    # it back to a rotation vector. R_Z is the heading and the heading of the origin marker is added
+                    # to the heading
                     heading = cv2.Rodrigues(np.matmul(self.rodrigues, Rod))[0][2] + np.pi/2
                     # updates the position of the marker
                     self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
@@ -157,7 +160,6 @@ class Tracker:
         cv2.destroyAllWindows()
 
     # sends a put request to the server with the locations of all markers at a poll rate of 20Hz
-
     def runPutThread(self):
         prevTime = time.time()
         while not self.Stop:
@@ -168,7 +170,7 @@ class Tracker:
 
     def runProcessFrame(self):
         # finds markers in the most recent frame in a loop
-        while(True):
+        while True:
             if self.Stop:
                 return
             if self.vs.grabbed:
@@ -189,7 +191,7 @@ class Tracker:
         prevTime = time.time()
         frameDelta = 1/self.frameRate
         #output = cv2.VideoWriter("formation1.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
-        while(True):
+        while True:
             # stops loop if thread is stopped
             if self.Stop:
                 return
