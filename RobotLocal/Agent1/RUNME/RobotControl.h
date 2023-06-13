@@ -8,8 +8,8 @@
 #define leftEncoder 2
 #define rightEncoder 3
 // Encoder ticks and interrupt functions are global because it wouldn't compile with them as members and methods
-unsigned int leftEncoderTicks = 0;
-unsigned int rightEncoderTicks = 0;
+volatile unsigned int leftEncoderTicks = 0;
+volatile unsigned int rightEncoderTicks = 0;
 float pi = M_PI;
 // Interrupts for encoders
 void incrementLeftEncoder()

@@ -49,6 +49,13 @@ class Tracker:
     # constructor that takes the marker width and the aruco type
 
     def __init__(self, marker_width, aruco_type, address, fps=60, wideAngle=False):
+        self.vs = None
+        self.outFrame = None
+        self.Stop = None
+        self.endTime = None
+        self.originT = None
+        self.rodrigues = None
+        self.originR = None
         self.markerWidth = marker_width
         self.arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[aruco_type])
         self.arucoParams = cv2.aruco.DetectorParameters_create()
@@ -89,7 +96,9 @@ class Tracker:
             # and it moves this should be changed)
             if not self.originFound:
                 # gets the rotation and translation vector of the origin marker
-                self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[10], self.markerWidth, self.mtx, self.dist)
+                self.originR, self.originT, markerpos = cv2.aruco.estimatePoseSingleMarkers(
+                    self.Corners[10], self.markerWidth, self.mtx, self.dist
+                )
                 # calculates rotation matrix from the rotation vector
                 self.rodrigues = cv2.Rodrigues(self.originR[0][0])[0]
                 self.originFound = True
@@ -98,7 +107,9 @@ class Tracker:
                 # checks if there is a marker found at the specific id
                 if len(self.Corners[10+i]) != 0:
                     # finds marker position in the camera reference frame
-                    rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(self.Corners[i+10], self.markerWidth, self.mtx, self.dist)
+                    rvec, tvec, markerpos = cv2.aruco.estimatePoseSingleMarkers(
+                        self.Corners[i+10], self.markerWidth, self.mtx, self.dist
+                    )
                     # finds the difference in position between the origin and the marker and rotates it to the origin
                     # reference frame
                     position = np.matmul(self.rodrigues, tvec[0][0]-self.originT[0][0])
@@ -190,7 +201,7 @@ class Tracker:
     def runShowFrame(self):
         prevTime = time.time()
         frameDelta = 1/self.frameRate
-        #output = cv2.VideoWriter("formation1.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
+        # output = cv2.VideoWriter("formation1.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
         while True:
             # stops loop if thread is stopped
             if self.Stop:

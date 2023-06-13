@@ -78,7 +78,7 @@ for i in range(3):
         resp = requests.head(address+"goal"+str(i+1)+"/"+str(j+1))
         if resp.status_code == 404:
             break
-        # code wasnt 404 so there is data in that slot so delete it and increment j to check next id
+        # code wasn't 404 so there is data in that slot so delete it and increment j to check next id
         else:
             requests.delete(address+"goal"+str(i+1)+"/"+str(j+1))
             j += 1
