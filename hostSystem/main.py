@@ -50,13 +50,20 @@ dt = allPos[1, 0] - allPos[0, 0]
 numChunks = ceil(len(allPos) / 15)
 allPos = np.array(np.array_split(allPos, numChunks), dtype=object)
 for i in range(numChunks):
-    # needs a temp array because the splicing gets screwed up because the split doesnt ensure constant size
+    # needs a temp array because the splicing gets screwed up because the split doesn't ensure constant size
     temp = allPos[i]
 
     for j in range(3):
         # posts the sub array format of the json is id (index of the chunk), total (total number of chunks),
         # dt (time between positions), and pos (the position of the target)
-        data = {'id': i+1, 'total': numChunks, 'dt': dt, 'update': updateRate, 'path': temp[:, 2*j+1:2*j+3].tolist()}
+        data = {
+            'id': i+1,
+            'total': numChunks,
+            'dt': dt,
+            'update': updateRate,
+            'path': temp[:, 2*j+1:2*j+3].tolist()
+        }
+
         resp = requests.put(address+"goal"+str(j+1)+"/"+str(i+1), json=data)
         # sends a post if there is a 404 because there isn't a field with the id
         if resp.status_code == 404:
