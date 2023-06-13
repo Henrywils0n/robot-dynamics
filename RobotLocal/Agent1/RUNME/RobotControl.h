@@ -107,14 +107,12 @@ public:
             directionalErr = err * cos(thetaErr);
             // flips the error by 180 degrees if the robot is driving backwards
             // angle is fixed here so it is only done once per iteration
-            if (directionalErr < 0.0f)
-            {
+            if (directionalErr < 0.0f) {
                 thetaErr = fixAngle(thetaErr - pi);
-            }
-            else
-            {
+            } else {
                 thetaErr = fixAngle(thetaErr);
             }
+
             // PID control for the linear and angular velocity
             derivative = (directionalErr - prevDirectionalErr) / (currentTime - prevTime) * 1000000;
             integral += directionalErr * (currentTime - prevTime) / 1000000;
@@ -142,20 +140,15 @@ public:
         float wL = (v - WB / 2 * w) / r;
         // set Directions according to the speed
         // 1 moves forward, 0 moves backward (if this isn't true on a robot flip the wires going to the motor)
-        if (wR > 0)
-        {
+        if (wR > 0) {
             DirWR = 1;
-        }
-        else
-        {
+        } else {
             DirWR = 0;
         }
-        if (wL > 0)
-        {
+
+        if (wL > 0) {
             DirWL = 1;
-        }
-        else
-        {
+        } else {
             DirWL = 0;
         }
         // using the calibrated values convert the speed to the correct PWM values
@@ -164,14 +157,11 @@ public:
         int WR = map(abs(wR), 0, 19.5, 90, 255);
         int WL = map(abs(wL), 0, 19.5, 90, 255);
         // setting cutoffs for the motors
-        if (WR > 255)
-            WR = 255;
-        else if (abs(wR) <= 0.35)
-            WR = 0;
-        if (WL > 255)
-            WL = 255;
-        else if (abs(wL) <= 0.35)
-            WL = 0;
+        if (WR > 255) WR = 255;
+        else if (abs(wR) <= 0.35) WR = 0;
+
+        if (WL > 255) WL = 255;
+        else if (abs(wL) <= 0.35) WL = 0;
         // sending signal to the motors
         digitalWrite(DIRR, DirWR);
         digitalWrite(DIRL, DirWL);
@@ -364,23 +354,19 @@ private:
         // angle change since last update
         float dTheta = 0;
         float dL = 0;
-        if (DirWL)
-        {
+
+        if (DirWL) {
             dTheta -= diffLeft * CL / WB * 2;
             dL += diffLeft * CL;
-        }
-        else
-        {
+        } else {
             dTheta += diffLeft * CL / WB * 2;
             dL -= diffLeft * CL;
         }
-        if (DirWR)
-        {
+
+        if (DirWR) {
             dTheta += diffRight * CR / WB * 2;
             dL += diffRight * CR;
-        }
-        else
-        {
+        } else {
             dTheta -= diffRight * CR / WB * 2;
             dL -= diffRight * CR;
         }
