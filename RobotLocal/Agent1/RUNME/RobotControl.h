@@ -1,6 +1,3 @@
-/*
-Code Authored by Keegan Kelly
-*/
 #include <math.h>
 #include <ArduinoJson.h>
 // Pin definitions

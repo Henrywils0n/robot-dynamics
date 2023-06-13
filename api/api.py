@@ -190,12 +190,11 @@ def goal3Req(id):
 # route for accepting 3 by 3 position array and splitting it to the 3 agents
 @app.route("/allPos/1", methods=["PUT"])
 def allPos():
-    if request.method == "PUT":
-        data["allPos"] = request.json
-        pos = np.array(request.json["pos"])
-        for i in range(3):
-            data["agents"][i]["position"] = pos[i, :].tolist()
-        return jsonify(data["allPos"])
+    data["allPos"] = request.json
+    pos = np.array(request.json["pos"])
+    for i in range(3):
+        data["agents"][i]["position"] = pos[i, :].tolist()
+    return jsonify(data["allPos"])
 
 
 # use this for debugging (if you need to print the requests) (not as fast as using waitress)

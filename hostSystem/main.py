@@ -58,7 +58,7 @@ for i in range(numChunks):
         # dt (time between positions), and pos (the position of the target)
         data = {'id': i+1, 'total': numChunks, 'dt': dt, 'update': updateRate, 'path': temp[:, 2*j+1:2*j+3].tolist()}
         resp = requests.put(address+"goal"+str(j+1)+"/"+str(i+1), json=data)
-        # sends a post if there is a 404 because there isnt a field with the id
+        # sends a post if there is a 404 because there isn't a field with the id
         if resp.status_code == 404:
             requests.post(address+"goal"+str(j+1)+"/", json=data)
 
@@ -66,7 +66,7 @@ for i in range(numChunks):
 for i in range(3):
     j = numChunks
     while True:
-        # HEAD request returns the header from if a GET request is made. If it the code is 404 then there is no data
+        # HEAD request returns the header from if a GET request is made. If the code is 404 then there is no data
         # on the server
         resp = requests.head(address+"goal"+str(i+1)+"/"+str(j+1))
         if resp.status_code == 404:
