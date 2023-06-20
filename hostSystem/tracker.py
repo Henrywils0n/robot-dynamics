@@ -113,7 +113,7 @@ class Tracker:
                     # finds the difference in position between the origin and the marker and rotates it to the origin
                     # reference frame
                     position = np.matmul(self.rodrigues, tvec[0][0]-self.originT[0][0])
-                    # rotation matrix of the marke
+                    # rotation matrix of the marker
                     Rod = cv2.Rodrigues(rvec[0][0])[0]
                     # multiply the rotation matrix of the marker with the rotation matrix of the origin and convert
                     # it back to a rotation vector. R_Z is the heading and the heading of the origin marker is added
@@ -202,7 +202,7 @@ class Tracker:
     def runShowFrame(self):
         prevTime = time.time()
         frameDelta = 1/self.frameRate
-        output = cv2.VideoWriter("lloyds3.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
+        # output = cv2.VideoWriter("lloyds3.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
         while True:
             # stops loop if thread is stopped
             if self.Stop:
@@ -211,7 +211,7 @@ class Tracker:
             if self.vs.grabbed:
                 prevTime = time.time()
                 cv2.imshow('frame', self.outFrame)
-                output.write(self.outFrame)
+                # output.write(self.outFrame)
             # stops all threads when q is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.stopThread()
