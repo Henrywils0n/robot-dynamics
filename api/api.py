@@ -90,98 +90,33 @@ def agentGoReq(id):
 
 
 # goal1 route with id
-@app.route("/goal1/<id>", methods=["GET", "PUT", "DELETE", "POST", "HEAD"])
-def goal1Req(id):
+@app.route("/<goal>/<id>", methods=["GET", "PUT", "DELETE", "POST", "HEAD"])
+def goalReq(goal, id):
     id = int(id)
     if request.method == "GET":
-        if 0 < id <= len(data["goal1"]):
-            return jsonify(data["goal1"][id - 1])
+        if 0 < id <= len(data[goal]):
+            return jsonify(data[goal][id - 1])
     if request.method == "PUT":
-        if 0 < id <= len(data["goal1"]):
-            data["goal1"][id - 1] = request.json
-            return jsonify(data["goal1"][id - 1])
+        if 0 < id <= len(data[goal]):
+            data[goal][id - 1] = request.json
+            return jsonify(data[goal][id - 1])
         else:
-            data["goal1"].append(request.json)
-            return jsonify(data["goal1"][-1])
+            data[goal].append(request.json)
+            return jsonify(data[goal][-1])
     if request.method == "DELETE":
-        if 0 < id <= len(data["goal1"]):
-            data["goal1"].pop(id - 1)
-            return jsonify(data["goal1"])
+        if 0 < id <= len(data[goal]):
+            data[goal].pop(id - 1)
+            return jsonify(data[goal])
         else:
             # 404
             return "", 404
     if request.method == "POST":
         if id > 0:
-            data["goal1"].append(request.json)
-            return jsonify(data["goal1"][id - 1])
+            data[goal].append(request.json)
+            return jsonify(data[goal][id - 1])
     if request.method == "HEAD":
-        if 0 < id <= len(data["goal1"]):
-            return jsonify(data["goal1"][id - 1])
-        else:
-            # return a 404 error
-            return "", 404
-
-
-# route for goal2 with id
-@app.route("/goal2/<id>", methods=["GET", "PUT", "DELETE", "POST", "HEAD"])
-def goal2Req(id):
-    id = int(id)
-    if request.method == "GET":
-        if 0 < id <= len(data["goal2"]):
-            return jsonify(data["goal2"][id - 1])
-    if request.method == "PUT":
-        if 0 < id <= len(data["goal2"]):
-            data["goal2"][id - 1] = request.json
-            return jsonify(data["goal2"][id - 1])
-        else:
-            data["goal2"].append(request.json)
-            return jsonify(data["goal2"][-1])
-    if request.method == "DELETE":
-        if 0 < id <= len(data["goal2"]):
-            data["goal2"].pop(id - 1)
-            return jsonify(data["goal2"])
-        else:
-            # return a 404 error
-            return "", 404
-    if request.method == "POST":
-        if id > 0:
-            data["goal2"].append(request.json)
-            return jsonify(data["goal2"][id - 1])
-    if request.method == "HEAD":
-        if 0 < id <= len(data["goal2"]):
-            return jsonify(data["goal2"][id - 1])
-        else:
-            # return a 404 error
-            return "", 404
-
-
-# route for goal3 with id
-@app.route("/goal3/<id>", methods=["GET", "PUT", "DELETE", "POST", "HEAD"])
-def goal3Req(id):
-    id = int(id)
-    if request.method == "GET":
-        if 0 < id <= len(data["goal3"]):
-            return jsonify(data["goal3"][id - 1])
-    if request.method == "PUT":
-        if 0 < id <= len(data["goal3"]):
-            data["goal3"][id - 1] = request.json
-            return jsonify(data["goal3"][id - 1])
-        else:
-            data["goal3"].append(request.json)
-            return jsonify(data["goal3"][-1])
-    if request.method == "DELETE":
-        if 0 < id <= len(data["goal3"]):
-            data["goal3"].pop(id - 1)
-            return jsonify(data["goal3"])
-        else:
-            return "", 404
-    if request.method == "POST":
-        if id > 0:
-            data["goal3"].append(request.json)
-            return jsonify(data["goal3"][id - 1])
-    if request.method == "HEAD":
-        if 0 < id <= len(data["goal3"]):
-            return jsonify(data["goal3"][id - 1])
+        if 0 < id <= len(data[goal]):
+            return jsonify(data[goal][id - 1])
         else:
             # return a 404 error
             return "", 404

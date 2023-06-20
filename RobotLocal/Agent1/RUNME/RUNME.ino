@@ -14,7 +14,6 @@ Robot robotA(0, 0, pi / 2, id, server);
 
 void loop(void)
 {
-
   robotA.getPath(1);
   int idx = robotA.pathDoc["id"].as<int>();
   int total = robotA.pathDoc["total"].as<int>();

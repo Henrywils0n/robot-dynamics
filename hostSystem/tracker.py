@@ -120,14 +120,14 @@ class Tracker:
                     # to the heading
                     heading = cv2.Rodrigues(np.matmul(self.rodrigues, Rod))[0][2] + np.pi/2
                     # updates the position of the marker
-                    self.pos[i] = [position[0], position[1], self.fixAngle(heading)]
+                    self.pos[i] = [position[0], position[1], self.fixAngle(heading)[0]]
                     # drawing axis on the markers
-                    cv2.aruco.drawAxis(frame, self.mtx, self.dist, Rod, tvec, self.markerWidth)
+                    cv2.drawFrameAxes(frame, self.mtx, self.dist, Rod, tvec, self.markerWidth)
         # draws the marker outlines, ids, and position onto the frame
 
         if self.originFound:
             # draws the axis on the origin marker
-            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
+            cv2.drawFrameAxes(frame, self.mtx, self.dist, self.rodrigues, self.originT[0][0], self.markerWidth * 5)
         cv2.aruco.drawDetectedMarkers(frame, corners, ids)
         # calculating FPS and drawing it onto the frame
         self.endTime = time.perf_counter()
@@ -189,10 +189,11 @@ class Tracker:
 
     def runGetFrame(self, frameRate):
         if self.wideAgnle:
-            Focus = 20
+            Focus = 25
         else:
             Focus = 0
         # initializes the video stream
+        # src = 0 for internal webcam or 1 for external if using laptop
         self.vs = WebcamVideoStream(src=0, fps=frameRate, focus=Focus).start()
         self.vs.start()
         # sets an initial outframe to prevent crashing before the first frame is processed
@@ -201,7 +202,7 @@ class Tracker:
     def runShowFrame(self):
         prevTime = time.time()
         frameDelta = 1/self.frameRate
-        # output = cv2.VideoWriter("formation1.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
+        # output = cv2.VideoWriter("lloyds3.avi", cv2.VideoWriter_fourcc(*'MJPG'), 20, (1280, 720))
         while True:
             # stops loop if thread is stopped
             if self.Stop:
