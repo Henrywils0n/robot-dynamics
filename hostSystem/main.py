@@ -5,7 +5,7 @@ import numpy as np
 from math import ceil
 import time
 
-filename = 'xlsxPaths/testData.xlsx'
+filename = 'xlsxPaths/lloyds2.xlsx'
 address = 'http://192.168.0.100:3000/'
 LINE_UP = '\033[1A'
 LINE_CLEAR = '\x1b[2K'

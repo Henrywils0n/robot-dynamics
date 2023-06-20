@@ -1,6 +1,6 @@
 import cv2
 import time
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -21,4 +21,4 @@ while 1:
     i += 5
     cap.set(cv2.CAP_PROP_FOCUS, i)
     print("Focus is set to: " + str(i))
-    time.sleep(1)
+    time.sleep(3)

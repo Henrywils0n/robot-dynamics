@@ -6,7 +6,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 # lower focus focuses further away from the camera
-focus = 20  # min: 0, max: 255, increment:5
+focus = 25  # min: 0, max: 255, increment:5
 cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
 cap.set(cv2.CAP_PROP_FOCUS, focus)
 cap.set(cv2.CAP_PROP_FPS, 30)
